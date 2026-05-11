@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using AvaloniaCursor = Avalonia.Input.Cursor;
 using ScottPlot;
 using ScottPlot.Avalonia;
 using ScottPlot.Plottables;
@@ -17,12 +18,23 @@ namespace Zametek.View.ProjectPlan
         private Point? m_DragStartPoint;
         private bool m_IsDragging;
 
+        // Left-button drag state (for subclasses).
+        private Point? m_LeftDragStartPoint;
+        private bool m_IsLeftDragging;
+
+        // Ctrl+left-button drag state (for subclasses).
+        private Point? m_CtrlLeftDragStartPoint;
+        private bool m_IsCtrlLeftDragging;
+        private bool m_CtrlWasHeldOnPress;
+
         protected ContentControl? m_PlotContainer;
 
         public ScottPlotUserControl()
         {
             m_DragStartPoint = null;
             m_IsDragging = false;
+            m_LeftDragStartPoint = null;
+            m_IsLeftDragging = false;
         }
 
         public void InitializePlotContainer(ContentControl plotContainer)
@@ -30,6 +42,11 @@ namespace Zametek.View.ProjectPlan
             m_PlotContainer = plotContainer;
             m_DragStartPoint = null;
             m_IsDragging = false;
+            m_LeftDragStartPoint = null;
+            m_IsLeftDragging = false;
+            m_CtrlLeftDragStartPoint = null;
+            m_IsCtrlLeftDragging = false;
+            m_CtrlWasHeldOnPress = false;
 
             m_PlotContainer.AddHandler(PointerPressedEvent, PlotContainer_PointerPressed, RoutingStrategies.Bubble, handledEventsToo: true);
             m_PlotContainer.AddHandler(PointerReleasedEvent, PlotContainer_PointerReleased, RoutingStrategies.Bubble, handledEventsToo: true);
@@ -45,6 +62,47 @@ namespace Zametek.View.ProjectPlan
         {
             // Check if the pointer action is a click or a drag.
             PointerPointProperties properties = e.GetCurrentPoint(this).Properties;
+
+            if (properties.PointerUpdateKind == PointerUpdateKind.LeftButtonPressed)
+            {
+                bool ctrlHeld = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+                m_CtrlWasHeldOnPress = ctrlHeld;
+
+                if (ctrlHeld)
+                {
+                    if (m_PlotContainer?.Content is AvaPlot plotModelCtrl)
+                    {
+                        Point posCtrl = e.GetPosition(plotModelCtrl);
+                        bool claimedCtrl = OnCtrlLeftDragStart(plotModelCtrl, posCtrl, e);
+                        if (claimedCtrl)
+                        {
+                            m_CtrlLeftDragStartPoint = e.GetPosition(this);
+                            m_IsCtrlLeftDragging = false;
+                        }
+                        else
+                        {
+                            // Not claimed — don't intercept the ctrl+click.
+                            m_CtrlWasHeldOnPress = false;
+                        }
+                    }
+                }
+                else
+                {
+                    if (m_PlotContainer?.Content is AvaPlot plotModel)
+                    {
+                        Point pos = e.GetPosition(plotModel);
+                        bool claimed = OnLeftPointerPressed(plotModel, pos, e);
+                        if (claimed)
+                        {
+                            // Only set up our drag tracking when the subclass actually wants this click.
+                            m_LeftDragStartPoint = e.GetPosition(this);
+                            m_IsLeftDragging = false;
+                        }
+                        // If not claimed, leave m_LeftDragStartPoint null so ScottPlot handles
+                        // the full press/release cycle (e.g. double-click auto-scale).
+                    }
+                }
+            }
 
             // Ensure it is the right mouse button
             if (properties.PointerUpdateKind == PointerUpdateKind.RightButtonPressed)
@@ -62,6 +120,45 @@ namespace Zametek.View.ProjectPlan
             // Check if the pointer action is a click or a drag.
             PointerPointProperties properties = e.GetCurrentPoint(this).Properties;
 
+            if (properties.PointerUpdateKind == PointerUpdateKind.LeftButtonReleased)
+            {
+                if (m_CtrlWasHeldOnPress)
+                {
+                    if (m_PlotContainer?.Content is AvaPlot plotModelCtrl)
+                    {
+                        Point posCtrl = e.GetPosition(plotModelCtrl);
+                        OnCtrlLeftDragCompleted(plotModelCtrl, posCtrl, e);
+                    }
+
+                    m_CtrlLeftDragStartPoint = null;
+                    m_IsCtrlLeftDragging = false;
+                    m_CtrlWasHeldOnPress = false;
+                    e.Handled = true;
+                }
+                else if (m_LeftDragStartPoint.HasValue)
+                {
+                    // Only claim handling when WE started a left-drag session.
+                    if (m_PlotContainer?.Content is AvaPlot plotModel)
+                    {
+                        Point pos = e.GetPosition(plotModel);
+                        if (m_IsLeftDragging)
+                        {
+                            OnLeftDragCompleted(plotModel, pos, e);
+                        }
+                        else
+                        {
+                            OnLeftPointerReleased(plotModel, pos, e);
+                        }
+                    }
+
+                    m_LeftDragStartPoint = null;
+                    m_IsLeftDragging = false;
+                    e.Handled = true;
+                }
+                // If m_LeftDragStartPoint is null we didn't start the session —
+                // let ScottPlot process its own release (pan/zoom cleanup).
+            }
+
             // Ensure it is the right mouse button
             if (properties.PointerUpdateKind == PointerUpdateKind.RightButtonReleased
                 && !m_IsDragging)
@@ -70,13 +167,35 @@ namespace Zametek.View.ProjectPlan
                 OpenPlotContainerContextMenu(e);
             }
 
-            // Reset the dragging state.
+            // Reset the right-button dragging state.
             m_DragStartPoint = null;
             m_IsDragging = false;
-            e.Handled = true;
         }
+
         private void CheckPointerDrag(PointerEventArgs e)
         {
+            if (m_CtrlLeftDragStartPoint.HasValue)
+            {
+                Point currentPosition = e.GetPosition(this);
+                double distance = Vector.Distance(m_CtrlLeftDragStartPoint.Value, currentPosition);
+
+                if (distance > c_DragThreshold && !m_IsCtrlLeftDragging)
+                {
+                    m_IsCtrlLeftDragging = true;
+                }
+            }
+
+            if (m_LeftDragStartPoint.HasValue)
+            {
+                Point currentPosition = e.GetPosition(this);
+                double distance = Vector.Distance(m_LeftDragStartPoint.Value, currentPosition);
+
+                if (distance > c_DragThreshold && !m_IsLeftDragging)
+                {
+                    m_IsLeftDragging = true;
+                }
+            }
+
             if (m_DragStartPoint.HasValue)
             {
                 Point currentPosition = e.GetPosition(this);
@@ -91,6 +210,61 @@ namespace Zametek.View.ProjectPlan
                 }
             }
         }
+
+        /// <summary>
+        /// Called when the left mouse button is pressed on the plot.
+        /// Return true to claim this click (sets up drag tracking and marks the release as handled).
+        /// Return false to let ScottPlot handle the full press/release cycle (e.g. double-click auto-scale).
+        /// </summary>
+        protected virtual bool OnLeftPointerPressed(AvaPlot plotModel, Point plotPosition, PointerPressedEventArgs e) => false;
+
+        /// <summary>
+        /// Called when the left mouse button is released after a drag. Override to commit the drag action.
+        /// </summary>
+        protected virtual void OnLeftDragCompleted(AvaPlot plotModel, Point plotPosition, PointerReleasedEventArgs e) { }
+
+        /// <summary>
+        /// Called when the left mouse button is released without a drag (i.e. a simple click). Override to cancel any pending state.
+        /// </summary>
+        protected virtual void OnLeftPointerReleased(AvaPlot plotModel, Point plotPosition, PointerReleasedEventArgs e) { }
+
+        /// <summary>
+        /// Called on every PointerMoved event while a left drag is in progress. Override for live preview.
+        /// </summary>
+        protected virtual void OnLeftDragging(AvaPlot plotModel, Point plotPosition, PointerEventArgs e) { }
+
+        /// <summary>
+        /// True while a left-button drag is active.
+        /// </summary>
+        protected bool IsLeftDragging => m_IsLeftDragging;
+
+        /// <summary>
+        /// Called when Ctrl+left mouse button is pressed on the plot.
+        /// Return true to claim this click (sets up Ctrl+drag tracking).
+        /// Return false to let ScottPlot handle it.
+        /// </summary>
+        protected virtual bool OnCtrlLeftDragStart(AvaPlot plotModel, Point plotPosition, PointerPressedEventArgs e) => false;
+
+        /// <summary>
+        /// Called on every PointerMoved event while a Ctrl+left drag is in progress.
+        /// </summary>
+        protected virtual void OnCtrlLeftDragging(AvaPlot plotModel, Point plotPosition, PointerEventArgs e) { }
+
+        /// <summary>
+        /// Called when Ctrl+left mouse button is released after a drag. Override to commit the dependency.
+        /// </summary>
+        protected virtual void OnCtrlLeftDragCompleted(AvaPlot plotModel, Point plotPosition, PointerReleasedEventArgs e) { }
+
+        /// <summary>
+        /// True while a Ctrl+left-button drag is active.
+        /// </summary>
+        protected bool IsCtrlLeftDragging => m_IsCtrlLeftDragging;
+
+        /// <summary>
+        /// Called during PointerMoved when no drag is active. Override to set a context-sensitive cursor.
+        /// Return null to leave the cursor unchanged.
+        /// </summary>
+        protected virtual AvaloniaCursor? GetHoverCursor(AvaPlot plotModel, Point plotPosition) => null;
 
         private void OpenPlotContainerContextMenu(PointerReleasedEventArgs e)
         {
@@ -124,6 +298,27 @@ namespace Zametek.View.ProjectPlan
             }
 
             Point pos = e.GetPosition(plotModel);
+
+            // Notify subclass of active Ctrl+left drag.
+            if (m_IsCtrlLeftDragging)
+            {
+                m_PlotContainer.Cursor = new AvaloniaCursor(StandardCursorType.DragCopy);
+                OnCtrlLeftDragging(plotModel, pos, e);
+                return;
+            }
+
+            // Notify subclass of active left drag.
+            if (m_IsLeftDragging)
+            {
+                m_PlotContainer.Cursor = new AvaloniaCursor(StandardCursorType.SizeWestEast);
+                OnLeftDragging(plotModel, pos, e);
+                return;
+            }
+
+            // Ask subclass for a context-sensitive hover cursor.
+            AvaloniaCursor? hoverCursor = GetHoverCursor(plotModel, pos);
+            m_PlotContainer.Cursor = hoverCursor ?? AvaloniaCursor.Default;
+
             Pixel mousePixel = new(pos.X, pos.Y);
             Coordinates mouseLocation = plotModel.Plot.GetCoordinates(mousePixel);
 

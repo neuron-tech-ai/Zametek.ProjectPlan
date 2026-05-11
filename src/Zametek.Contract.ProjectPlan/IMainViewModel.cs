@@ -8,6 +8,40 @@ namespace Zametek.Contract.ProjectPlan
     {
         string ProjectTitle { get; }
 
+        ShellView ActiveShellView { get; set; }
+
+        bool IsCommandPaletteOpen { get; set; }
+
+        IActivitiesManagerViewModel ActivitiesManagerViewModel { get; }
+
+        IGanttChartManagerViewModel GanttChartManagerViewModel { get; }
+
+        IResourceChartManagerViewModel ResourceChartManagerViewModel { get; }
+
+        IScenarioChartManagerViewModel ScenarioChartManagerViewModel { get; }
+
+        IArrowGraphManagerViewModel ArrowGraphManagerViewModel { get; }
+
+        IVertexGraphManagerViewModel VertexGraphManagerViewModel { get; }
+
+        ITrackingManagerViewModel TrackingManagerViewModel { get; }
+
+        IResourceSettingsManagerViewModel ResourceSettingsManagerViewModel { get; }
+
+        IWorkStreamSettingsManagerViewModel WorkStreamSettingsManagerViewModel { get; }
+
+        IGraphSettingsManagerViewModel GraphSettingsManagerViewModel { get; }
+
+        IHolidaySettingsManagerViewModel HolidaySettingsManagerViewModel { get; }
+
+        IMetricManagerViewModel MetricManagerViewModel { get; }
+
+        IEarnedValueChartManagerViewModel EarnedValueChartManagerViewModel { get; }
+
+        IProjectScenarioManagerViewModel ProjectScenarioManagerViewModel { get; }
+
+        IOutputManagerViewModel OutputManagerViewModel { get; }
+
         bool IsBusy { get; }
 
         bool IsOpening { get; }
@@ -123,6 +157,8 @@ namespace Zametek.Contract.ProjectPlan
         void ResetLayout();
 
         Task ResetLayoutAsync();
+
+        void SelectActivity(int activityId);
 
         Task OpenProjectFileAsync();
 
