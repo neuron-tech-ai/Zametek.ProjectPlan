@@ -4,9 +4,43 @@ using Zametek.Common.ProjectPlan;
 namespace Zametek.Contract.ProjectPlan
 {
     public interface IMainViewModel
-        : IDisposable
+        : IKillSubscriptions, IDisposable
     {
         string ProjectTitle { get; }
+
+        ShellView ActiveShellView { get; set; }
+
+        bool IsCommandPaletteOpen { get; set; }
+
+        IActivitiesManagerViewModel ActivitiesManagerViewModel { get; }
+
+        IGanttChartManagerViewModel GanttChartManagerViewModel { get; }
+
+        IResourceChartManagerViewModel ResourceChartManagerViewModel { get; }
+
+        IScenarioChartManagerViewModel ScenarioChartManagerViewModel { get; }
+
+        IArrowGraphManagerViewModel ArrowGraphManagerViewModel { get; }
+
+        IVertexGraphManagerViewModel VertexGraphManagerViewModel { get; }
+
+        ITrackingManagerViewModel TrackingManagerViewModel { get; }
+
+        IResourceSettingsManagerViewModel ResourceSettingsManagerViewModel { get; }
+
+        IWorkStreamSettingsManagerViewModel WorkStreamSettingsManagerViewModel { get; }
+
+        IGraphSettingsManagerViewModel GraphSettingsManagerViewModel { get; }
+
+        IHolidaySettingsManagerViewModel HolidaySettingsManagerViewModel { get; }
+
+        IMetricManagerViewModel MetricManagerViewModel { get; }
+
+        IEarnedValueChartManagerViewModel EarnedValueChartManagerViewModel { get; }
+
+        IProjectScenarioManagerViewModel ProjectScenarioManagerViewModel { get; }
+
+        IOutputManagerViewModel OutputManagerViewModel { get; }
 
         bool IsBusy { get; }
 
@@ -24,6 +58,10 @@ namespace Zametek.Contract.ProjectPlan
 
         bool IsProjectUpdated { get; }
 
+        bool IsProjectScenarioUpdated { get; }
+
+        bool ProjectHasChanges { get; }
+
         DateTimeOffset ProjectStart { get; set; }
 
         DateTimeOffset Today { get; set; }
@@ -36,13 +74,13 @@ namespace Zametek.Contract.ProjectPlan
 
         bool UseClassicDates { get; set; }
 
-        bool UseBusinessDays { get; set; }
+        NonWorkingDayMode NonWorkingDayMode { get; set; }
 
         bool DefaultShowDates { get; set; }
 
         bool DefaultUseClassicDates { get; set; }
 
-        bool DefaultUseBusinessDays { get; set; }
+        NonWorkingDayMode DefaultNonWorkingDayMode { get; set; }
 
         bool DefaultHideCost { get; set; }
 
@@ -54,23 +92,23 @@ namespace Zametek.Contract.ProjectPlan
 
         BaseTheme BaseTheme { get; set; }
 
-        ICommand OpenProjectPlanFileCommand { get; }
+        ICommand OpenProjectFileCommand { get; }
 
-        ICommand SaveProjectPlanFileCommand { get; }
+        ICommand SaveProjectFileCommand { get; }
 
-        ICommand SaveAsProjectPlanFileCommand { get; }
+        ICommand SaveAsProjectFileCommand { get; }
 
-        ICommand ImportProjectFileCommand { get; }
+        ICommand ImportProjectScenarioFileCommand { get; }
 
-        ICommand ExportProjectFileCommand { get; }
+        ICommand ExportProjectScenarioFileCommand { get; }
 
-        ICommand CloseProjectPlanCommand { get; }
+        ICommand CloseProjectCommand { get; }
 
         ICommand ToggleShowDatesCommand { get; }
 
         ICommand ToggleUseClassicDatesCommand { get; }
 
-        ICommand ToggleUseBusinessDaysCommand { get; }
+        ICommand ChangeNonWorkingDayModeCommand { get; }
 
         ICommand ToggleHideCostCommand { get; }
 
@@ -80,7 +118,7 @@ namespace Zametek.Contract.ProjectPlan
 
         ICommand ToggleDefaultUseClassicDatesCommand { get; }
 
-        ICommand ToggleDefaultUseBusinessDaysCommand { get; }
+        ICommand ChangeDefaultNonWorkingDayModeCommand { get; }
 
         ICommand ToggleDefaultHideCostCommand { get; }
 
@@ -88,35 +126,63 @@ namespace Zametek.Contract.ProjectPlan
 
         ICommand ChangeThemeCommand { get; }
 
+        ICommand SaveLayoutCommand { get; }
+
+        ICommand ResetLayoutCommand { get; }
+
         ICommand CompileCommand { get; }
 
         ICommand ToggleAutoCompileCommand { get; }
 
         ICommand TransitiveReductionCommand { get; }
 
-        ICommand OpenHyperLinkCommand { get; }
+        ICommand OpenDocumentationCommand { get; }
+
+        ICommand OpenDonateCommand { get; }
+
+        ICommand OpenMainPageCommand { get; }
+
+        ICommand OpenReportIssueCommand { get; }
+
+        ICommand OpenViewLicenseCommand { get; }
 
         ICommand OpenAboutCommand { get; }
+
+        void SaveLayout();
+
+        void RestoreLayout();
 
         void CloseLayout();
 
         void ResetLayout();
 
-        Task OpenProjectPlanFileAsync();
+        Task ResetLayoutAsync();
 
-        Task OpenProjectPlanFileAsync(string? filename);
+        void SelectActivity(int activityId);
 
-        Task SaveProjectPlanFileAsync();
+        Task OpenProjectFileAsync();
 
-        Task SaveAsProjectPlanFileAsync();
+        Task OpenProjectFileAsync(string? filename);
 
-        Task ImportProjectFileAsync();
+        Task SaveProjectFileAsync();
 
-        Task ExportProjectFileAsync();
+        Task SaveAsProjectFileAsync();
 
-        Task CloseProjectPlanAsync();
+        Task ImportProjectScenarioFileAsync();
 
-        Task OpenHyperLinkAsync(string hyperlink);
+        Task ExportProjectScenarioFileAsync();
+
+        Task CloseProjectAsync();
+
+        Task OpenDocumentationAsync();
+
+        Task OpenDonateAsync();
+
+        Task OpenMainPageAsync();
+
+        Task OpenReportIssueAsync();
+
+        Task OpenViewLicenseAsync();
 
         Task OpenAboutAsync();
     }

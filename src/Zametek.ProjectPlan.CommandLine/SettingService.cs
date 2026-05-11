@@ -1,4 +1,5 @@
-﻿using Zametek.ViewModel.ProjectPlan;
+﻿using Zametek.Common.ProjectPlan;
+using Zametek.ViewModel.ProjectPlan;
 
 namespace Zametek.ProjectPlan.CommandLine
 {
@@ -7,11 +8,11 @@ namespace Zametek.ProjectPlan.CommandLine
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
         private string m_ProjectDirectory;
         private bool m_DefaultShowDates;
         private bool m_DefaultUseClassicDates;
-        private bool m_DefaultUseBusinessDays;
+        private NonWorkingDayMode m_DefaultNonWorkingDayMode;
         private bool m_DefaultHideCost;
         private bool m_DefaultHideBilling;
         private string m_SelectedTheme;
@@ -23,7 +24,7 @@ namespace Zametek.ProjectPlan.CommandLine
         public SettingService()
             : base(string.Empty)
         {
-            m_Lock = new object();
+            m_Lock = new();
             m_ProjectDirectory = string.Empty;
             m_SelectedTheme = string.Empty;
         }
@@ -48,6 +49,27 @@ namespace Zametek.ProjectPlan.CommandLine
                     m_ProjectDirectory = value;
                 }
             }
+        }
+
+        public override string DockLayout
+        {
+            get
+            {
+                return string.Empty;
+            }
+            set
+            {
+            }
+        }
+
+        public override IList<DataGridModel> GetDataGridLayout()
+        {
+            return [];
+        }
+
+        public override void SetDataGridLayout(IList<DataGridModel> models)
+        {
+            throw new NotImplementedException();
         }
 
         public override bool DefaultShowDates
@@ -80,17 +102,17 @@ namespace Zametek.ProjectPlan.CommandLine
             }
         }
 
-        public override bool DefaultUseBusinessDays
+        public override NonWorkingDayMode DefaultNonWorkingDayMode
         {
             get
             {
-                return m_DefaultUseBusinessDays;
+                return m_DefaultNonWorkingDayMode;
             }
             set
             {
                 lock (m_Lock)
                 {
-                    m_DefaultUseBusinessDays = value;
+                    m_DefaultNonWorkingDayMode = value;
                 }
             }
         }

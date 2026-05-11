@@ -19,7 +19,7 @@ namespace Zametek.Resource.ProjectPlan {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Labels {
@@ -144,6 +144,15 @@ namespace Zametek.Resource.ProjectPlan {
         /// <summary>
         ///   Looks up a localized string similar to Add.
         /// </summary>
+        public static string Label_AddManagedHoliday {
+            get {
+                return ResourceManager.GetString("Label_AddManagedHoliday", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add.
+        /// </summary>
         public static string Label_AddManagedResource {
             get {
                 return ResourceManager.GetString("Label_AddManagedResource", resourceCulture);
@@ -169,6 +178,15 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add Tag.
+        /// </summary>
+        public static string Label_AddTag {
+            get {
+                return ResourceManager.GetString("Label_AddTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Allocated to Resources.
         /// </summary>
         public static string Label_AllocatedToResources {
@@ -183,6 +201,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_AllocationMode {
             get {
                 return ResourceManager.GetString("Label_AllocationMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allocation Order.
+        /// </summary>
+        public static string Label_AllocationOrder {
+            get {
+                return ResourceManager.GetString("Label_AllocationOrder", resourceCulture);
             }
         }
         
@@ -205,7 +232,7 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 0.9.2.
+        ///   Looks up a localized string similar to 0.9.3-rc.1.
         /// </summary>
         public static string Label_AppVersion {
             get {
@@ -228,6 +255,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_AvailableFrom {
             get {
                 return ResourceManager.GetString("Label_AvailableFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base.
+        /// </summary>
+        public static string Label_BaseNode {
+            get {
+                return ResourceManager.GetString("Label_BaseNode", resourceCulture);
             }
         }
         
@@ -268,7 +304,16 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copyright (c) 2025.
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string Label_CopyNode {
+            get {
+                return ResourceManager.GetString("Label_CopyNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copyright (c) 2026.
         /// </summary>
         public static string Label_Copyright {
             get {
@@ -291,6 +336,24 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_CriticalityWeight {
             get {
                 return ResourceManager.GetString("Label_CriticalityWeight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Curve Fitting.
+        /// </summary>
+        public static string Label_CurveFittingType {
+            get {
+                return ResourceManager.GetString("Label_CurveFittingType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cut.
+        /// </summary>
+        public static string Label_CutNode {
+            get {
+                return ResourceManager.GetString("Label_CutNode", resourceCulture);
             }
         }
         
@@ -369,9 +432,9 @@ namespace Zametek.Resource.ProjectPlan {
         /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
-        public static string Label_DeleteManagedActivity {
+        public static string Label_DeleteManagedActivities {
             get {
-                return ResourceManager.GetString("Label_DeleteManagedActivity", resourceCulture);
+                return ResourceManager.GetString("Label_DeleteManagedActivities", resourceCulture);
             }
         }
         
@@ -381,6 +444,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_DeleteManagedActivitySeverities {
             get {
                 return ResourceManager.GetString("Label_DeleteManagedActivitySeverities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string Label_DeleteManagedHolidays {
+            get {
+                return ResourceManager.GetString("Label_DeleteManagedHolidays", resourceCulture);
             }
         }
         
@@ -399,6 +471,24 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_DeleteManagedWorkStreams {
             get {
                 return ResourceManager.GetString("Label_DeleteManagedWorkStreams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string Label_DeleteNode {
+            get {
+                return ResourceManager.GetString("Label_DeleteNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Tag.
+        /// </summary>
+        public static string Label_DeleteTag {
+            get {
+                return ResourceManager.GetString("Label_DeleteTag", resourceCulture);
             }
         }
         
@@ -475,6 +565,15 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate.
+        /// </summary>
+        public static string Label_DuplicateNode {
+            get {
+                return ResourceManager.GetString("Label_DuplicateNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Duration.
         /// </summary>
         public static string Label_Duration {
@@ -513,30 +612,84 @@ namespace Zametek.Resource.ProjectPlan {
         /// <summary>
         ///   Looks up a localized string similar to Edit.
         /// </summary>
-        public static string Label_EditManagedActivity {
+        public static string Label_EditManagedActivities {
             get {
-                return ResourceManager.GetString("Label_EditManagedActivity", resourceCulture);
+                return ResourceManager.GetString("Label_EditManagedActivities", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Edit.
         /// </summary>
-        public static string Label_EditManagedResource {
+        public static string Label_EditManagedHoliday {
             get {
-                return ResourceManager.GetString("Label_EditManagedResource", resourceCulture);
+                return ResourceManager.GetString("Label_EditManagedHoliday", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Efficiency:.
+        ///   Looks up a localized string similar to Edit.
         /// </summary>
-        public static string Label_Efficiency {
+        public static string Label_EditManagedResources {
             get {
-                return ResourceManager.GetString("Label_Efficiency", resourceCulture);
+                return ResourceManager.GetString("Label_EditManagedResources", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string Label_EditManagedWorkStreams {
+            get {
+                return ResourceManager.GetString("Label_EditManagedWorkStreams", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate.
+        /// </summary>
+        public static string Label_DuplicateManagedActivity {
+            get {
+                return ResourceManager.GetString("Label_DuplicateManagedActivity", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate.
+        /// </summary>
+        public static string Label_DuplicateManagedActivitySeverity {
+            get {
+                return ResourceManager.GetString("Label_DuplicateManagedActivitySeverity", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate.
+        /// </summary>
+        public static string Label_DuplicateManagedHoliday {
+            get {
+                return ResourceManager.GetString("Label_DuplicateManagedHoliday", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate.
+        /// </summary>
+        public static string Label_DuplicateManagedResource {
+            get {
+                return ResourceManager.GetString("Label_DuplicateManagedResource", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate.
+        /// </summary>
+        public static string Label_DuplicateManagedWorkStream {
+            get {
+                return ResourceManager.GetString("Label_DuplicateManagedWorkStream", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Effort.
         /// </summary>
@@ -547,11 +700,29 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Efficiency:.
+        /// </summary>
+        public static string Label_EffortEfficiency {
+            get {
+                return ResourceManager.GetString("Label_EffortEfficiency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Effort Projection.
         /// </summary>
         public static string Label_EffortProjection {
             get {
                 return ResourceManager.GetString("Label_EffortProjection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Empty.
+        /// </summary>
+        public static string Label_EmptyNode {
+            get {
+                return ResourceManager.GetString("Label_EmptyNode", resourceCulture);
             }
         }
         
@@ -709,6 +880,42 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        public static string Label_HolidayName {
+            get {
+                return ResourceManager.GetString("Label_HolidayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notes.
+        /// </summary>
+        public static string Label_HolidayNotes {
+            get {
+                return ResourceManager.GetString("Label_HolidayNotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-Working Days.
+        /// </summary>
+        public static string Label_HolidayRecurrencePatternDisplay {
+            get {
+                return ResourceManager.GetString("Label_HolidayRecurrencePatternDisplay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start Date.
+        /// </summary>
+        public static string Label_HolidayStartDate {
+            get {
+                return ResourceManager.GetString("Label_HolidayStartDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ID.
         /// </summary>
         public static string Label_Id {
@@ -750,6 +957,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_IndirectMargin {
             get {
                 return ResourceManager.GetString("Label_IndirectMargin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert.
+        /// </summary>
+        public static string Label_InsertManagedActivity {
+            get {
+                return ResourceManager.GetString("Label_InsertManagedActivity", resourceCulture);
             }
         }
         
@@ -908,6 +1124,42 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        public static string Label_Name {
+            get {
+                return ResourceManager.GetString("Label_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Name.
+        /// </summary>
+        public static string Label_NewName {
+            get {
+                return ResourceManager.GetString("Label_NewName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Scenario.
+        /// </summary>
+        public static string Label_NewScenario {
+            get {
+                return ResourceManager.GetString("Label_NewScenario", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Folder.
+        /// </summary>
+        public static string Label_NewScenarioFolder {
+            get {
+                return ResourceManager.GetString("Label_NewScenarioFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No.
         /// </summary>
         public static string Label_No {
@@ -967,6 +1219,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_OtherMargin {
             get {
                 return ResourceManager.GetString("Label_OtherMargin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste.
+        /// </summary>
+        public static string Label_PasteNode {
+            get {
+                return ResourceManager.GetString("Label_PasteNode", resourceCulture);
             }
         }
         
@@ -1070,6 +1331,42 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename.
+        /// </summary>
+        public static string Label_RenameNode {
+            get {
+                return ResourceManager.GetString("Label_RenameNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Renumber.
+        /// </summary>
+        public static string Label_RenumberActivities {
+            get {
+                return ResourceManager.GetString("Label_RenumberActivities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Renumber.
+        /// </summary>
+        public static string Label_RenumberResources {
+            get {
+                return ResourceManager.GetString("Label_RenumberResources", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Renumber.
+        /// </summary>
+        public static string Label_RenumberWorkStreams {
+            get {
+                return ResourceManager.GetString("Label_RenumberWorkStreams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resource.
         /// </summary>
         public static string Label_Resource {
@@ -1115,11 +1412,29 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Root.
+        /// </summary>
+        public static string Label_RootNode {
+            get {
+                return ResourceManager.GetString("Label_RootNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Schedule.
         /// </summary>
         public static string Label_ScheduleMode {
             get {
                 return ResourceManager.GetString("Label_ScheduleMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select.
+        /// </summary>
+        public static string Label_SelectManagedScenario {
+            get {
+                return ResourceManager.GetString("Label_SelectManagedScenario", resourceCulture);
             }
         }
         
@@ -1192,6 +1507,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_ShowSlack {
             get {
                 return ResourceManager.GetString("Label_ShowSlack", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Show All Connections.
+        /// </summary>
+        public static string Label_ShowAllConnections {
+            get {
+                return ResourceManager.GetString("Label_ShowAllConnections", resourceCulture);
             }
         }
         
@@ -1349,6 +1673,24 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to X Axis Metric.
+        /// </summary>
+        public static string Label_TrackedMetricXAxis {
+            get {
+                return ResourceManager.GetString("Label_TrackedMetricXAxis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Y Axis Metric.
+        /// </summary>
+        public static string Label_TrackedMetricYAxis {
+            get {
+                return ResourceManager.GetString("Label_TrackedMetricYAxis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unit Billing.
         /// </summary>
         public static string Label_UnitBilling {
@@ -1363,6 +1705,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Label_UnitCost {
             get {
                 return ResourceManager.GetString("Label_UnitCost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        public static string Label_UnknownNode {
+            get {
+                return ResourceManager.GetString("Label_UnknownNode", resourceCulture);
             }
         }
         

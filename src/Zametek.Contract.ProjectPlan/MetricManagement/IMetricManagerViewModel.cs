@@ -29,11 +29,11 @@
 
         double? GeometricActivityRisk { get; }
 
-        int? CyclomaticComplexity { get; }
+        int? NetworkCyclomaticComplexity { get; }
 
-        int? Duration { get; }
+        int? NetworkDuration { get; }
 
-        double? DurationManMonths { get; }
+        double? NetworkDurationManMonths { get; }
 
         string ProjectFinish { get; }
 
@@ -61,6 +61,14 @@
 
         double? TotalMargin { get; }
 
+        string DisplayDirectMargin { get; }
+
+        string DisplayIndirectMargin { get; }
+
+        string DisplayOtherMargin { get; }
+
+        string DisplayTotalMargin { get; }
+
         double? DirectMarginAbsolute { get; }
 
         double? IndirectMarginAbsolute { get; }
@@ -79,10 +87,6 @@
 
         double? ActivityEffort { get; }
 
-        double? Efficiency { get; }
-
-        void BuildMetrics();
-
-        void BuildCostsBillingsAndEfforts();
+        double? EffortEfficiency { get; }
     }
 }

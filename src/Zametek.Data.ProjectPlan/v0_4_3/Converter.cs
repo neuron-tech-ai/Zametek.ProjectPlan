@@ -1,39 +1,35 @@
-﻿using AutoMapper;
-
-namespace Zametek.Data.ProjectPlan.v0_4_3
+﻿namespace Zametek.Data.ProjectPlan.v0_4_3
 {
     public static class Converter
     {
-        public static ProjectPlanModel Upgrade(
-            IMapper mapper,
-            v0_4_2.ProjectPlanModel projectPlan)
+        public static ProjectModel Upgrade(
+            VersionMapper mapper,
+            v0_4_2.ProjectModel project)
         {
             ArgumentNullException.ThrowIfNull(mapper);
-            ArgumentNullException.ThrowIfNull(projectPlan);
+            ArgumentNullException.ThrowIfNull(project);
 
-            List<DependentActivityModel> activities = mapper.Map<List<v0_4_2.DependentActivityModel>, List<DependentActivityModel>>(projectPlan.DependentActivities);
+            List<DependentActivityModel> activities = [.. project.DependentActivities.Select(mapper.FromV0_4_2ToV0_4_3)];
 
             for (int i = 0; i < activities.Count; i++)
             {
                 activities[i].PlanningDependencies.Clear();
-                activities[i].PlanningDependencies.AddRange(projectPlan.DependentActivities[i].ManualDependencies);
+                activities[i].PlanningDependencies.AddRange(project.DependentActivities[i].ManualDependencies);
             }
 
-            var plan = new ProjectPlanModel
+            return new ProjectModel
             {
-                ProjectStart = projectPlan.ProjectStart,
-                Today = projectPlan.ProjectStart,
+                ProjectStart = project.ProjectStart,
+                Today = project.ProjectStart,
                 DependentActivities = activities,
-                ArrowGraphSettings = projectPlan.ArrowGraphSettings ?? new(),
-                ResourceSettings = projectPlan.ResourceSettings ?? new(),
-                WorkStreamSettings = projectPlan.WorkStreamSettings ?? new(),
-                DisplaySettings = projectPlan.DisplaySettings ?? new(),
-                GraphCompilation = mapper.Map<v0_4_2.GraphCompilationModel, GraphCompilationModel>(projectPlan.GraphCompilation ?? new v0_4_2.GraphCompilationModel()),
-                ArrowGraph = projectPlan.ArrowGraph ?? new(),
-                HasStaleOutputs = projectPlan.HasStaleOutputs,
+                ArrowGraphSettings = project.ArrowGraphSettings ?? new(),
+                ResourceSettings = project.ResourceSettings ?? new(),
+                WorkStreamSettings = project.WorkStreamSettings ?? new(),
+                DisplaySettings = project.DisplaySettings ?? new(),
+                GraphCompilation = mapper.FromV0_4_2ToV0_4_3(project.GraphCompilation ?? new v0_4_2.GraphCompilationModel()),
+                ArrowGraph = project.ArrowGraph ?? new(),
+                HasStaleOutputs = project.HasStaleOutputs,
             };
-
-            return plan;
         }
     }
 }

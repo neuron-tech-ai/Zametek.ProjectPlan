@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;ARM64</Platforms>
@@ -18,6 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Holidays.Designer.cs">
+      <DependentUpon>Holidays.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Suffixes.Designer.cs">
       <DependentUpon>Suffixes.resx</DependentUpon>
       <DesignTime>True</DesignTime>
@@ -25,11 +30,6 @@
     </Compile>
     <Compile Update="Reporting.Designer.cs">
       <DependentUpon>Reporting.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="Links.Designer.cs">
-      <DependentUpon>Links.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
@@ -81,6 +81,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Holidays.resx">
+      <LastGenOutput>Holidays.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
     <EmbeddedResource Update="Suffixes.resx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <LastGenOutput>Suffixes.Designer.cs</LastGenOutput>
@@ -89,11 +93,6 @@
     <EmbeddedResource Update="Reporting.resx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <LastGenOutput>Reporting.Designer.cs</LastGenOutput>
-      <Generator>PublicResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Links.resx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <LastGenOutput>Links.Designer.cs</LastGenOutput>
       <Generator>PublicResXFileCodeGenerator</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Labels.resx">

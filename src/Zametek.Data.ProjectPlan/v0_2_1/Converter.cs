@@ -1,44 +1,42 @@
-﻿using AutoMapper;
-
-namespace Zametek.Data.ProjectPlan.v0_2_1
+﻿namespace Zametek.Data.ProjectPlan.v0_2_1
 {
     public static class Converter
     {
-        public static ProjectPlanModel Upgrade(
-            IMapper mapper,
-            v0_2_0.ProjectPlanModel projectPlan)
+        public static ProjectModel Upgrade(
+            VersionMapper mapper,
+            v0_2_0.ProjectModel project)
         {
             ArgumentNullException.ThrowIfNull(mapper);
-            ArgumentNullException.ThrowIfNull(projectPlan);
+            ArgumentNullException.ThrowIfNull(project);
             GraphCompilationErrorsModel? errors = null;
 
-            if (projectPlan.GraphCompilation?.Errors != null)
+            if (project.GraphCompilation?.Errors != null)
             {
                 errors = new GraphCompilationErrorsModel
                 {
-                    AllResourcesExplicitTargetsButNotAllActivitiesTargeted = projectPlan.GraphCompilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted,
-                    CircularDependencies = projectPlan.GraphCompilation.Errors.CircularDependencies,
-                    MissingDependencies = projectPlan.GraphCompilation.Errors.MissingDependencies,
+                    AllResourcesExplicitTargetsButNotAllActivitiesTargeted = project.GraphCompilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted,
+                    CircularDependencies = project.GraphCompilation.Errors.CircularDependencies,
+                    MissingDependencies = project.GraphCompilation.Errors.MissingDependencies,
                     InvalidConstraints = [],
                 };
             }
 
-            return new ProjectPlanModel
+            return new ProjectModel
             {
-                ProjectStart = projectPlan.ProjectStart,
-                DependentActivities = mapper.Map<List<v0_1_0.DependentActivityModel>, List<DependentActivityModel>>(projectPlan.DependentActivities),
-                ArrowGraphSettings = projectPlan.ArrowGraphSettings,
-                ResourceSettings = projectPlan.ResourceSettings,
+                ProjectStart = project.ProjectStart,
+                DependentActivities = [.. project.DependentActivities.Select(mapper.FromV0_1_0ToV0_2_1)],
+                ArrowGraphSettings = project.ArrowGraphSettings,
+                ResourceSettings = project.ResourceSettings,
                 GraphCompilation = new GraphCompilationModel
                 {
-                    DependentActivities = mapper.Map<List<v0_1_0.DependentActivityModel>, List<DependentActivityModel>>(projectPlan.GraphCompilation?.DependentActivities ?? []),
-                    ResourceSchedules = mapper.Map<List<v0_1_0.ResourceScheduleModel>, List<ResourceScheduleModel>>(projectPlan.GraphCompilation?.ResourceSchedules ?? []),
+                    DependentActivities = [.. (project.GraphCompilation?.DependentActivities ?? []).Select(mapper.FromV0_1_0ToV0_2_1)],
+                    ResourceSchedules = [.. (project.GraphCompilation?.ResourceSchedules ?? []).Select(mapper.FromV0_1_0ToV0_2_1)],
                     Errors = errors,
-                    CyclomaticComplexity = projectPlan.GraphCompilation?.CyclomaticComplexity ?? default,
-                    Duration = projectPlan.GraphCompilation?.Duration ?? default,
+                    CyclomaticComplexity = project.GraphCompilation?.CyclomaticComplexity ?? default,
+                    Duration = project.GraphCompilation?.Duration ?? default,
                 },
-                ArrowGraph = mapper.Map<v0_1_0.ArrowGraphModel, ArrowGraphModel>(projectPlan.ArrowGraph ?? new v0_1_0.ArrowGraphModel()),
-                HasStaleOutputs = projectPlan.HasStaleOutputs,
+                ArrowGraph = mapper.FromV0_1_0ToV0_2_1(project.ArrowGraph ?? new v0_1_0.ArrowGraphModel()),
+                HasStaleOutputs = project.HasStaleOutputs,
             };
         }
     }

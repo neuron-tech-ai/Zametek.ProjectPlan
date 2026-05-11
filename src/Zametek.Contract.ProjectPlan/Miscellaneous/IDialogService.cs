@@ -10,13 +10,13 @@
 
         Task ShowWarningAsync(string title, string header, string message, bool markdown = false);
 
-        Task ShowInfoAsync(string title, string header, string message, bool markdown = false, Uri? link = null);
+        Task ShowInfoAsync(string title, string header, string message, bool markdown = false, bool showMainPageLink = false);
 
-        Task ShowInfoAsync(string title, string header, string message, double height, double width, bool markdown = false, Uri? link = null);
+        Task ShowInfoAsync(string title, string header, string message, double height, double width, bool markdown = false, bool showMainPageLink = false);
 
-        Task<bool> ShowContextAsync(string title, object context, bool markdown = false);
+        Task<bool> ShowContextAsync(string title, string header, string message, object context, bool markdown = false);
 
-        Task<bool> ShowContextAsync(string title, object context, double height, double width, bool markdown = false);
+        Task<bool> ShowContextAsync(string title, string header, string message, object context, double height, double width, bool markdown = false);
 
         Task<bool> ShowConfirmationAsync(string title, string header, string message, bool markdown = false);
 

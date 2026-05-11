@@ -17,6 +17,12 @@
 
         public string? BorderColorHexCode { get; init; }
 
+        public NodeBorderDashStyle BorderDashStyle { get; init; }
+
+        public double BorderThickness { get; init; }
+
         public string? Text { get; init; }
+
+        public string? Name { get; init; }
     }
 }

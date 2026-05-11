@@ -19,7 +19,7 @@ namespace Zametek.Resource.ProjectPlan {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Menus {
@@ -187,6 +187,42 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Custom Calendar.
+        /// </summary>
+        public static string Menu_NonWorkingDaysCustomCalendar {
+            get {
+                return ResourceManager.GetString("Menu_NonWorkingDaysCustomCalendar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        public static string Menu_NonWorkingDaysNone {
+            get {
+                return ResourceManager.GetString("Menu_NonWorkingDaysNone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-Working Days.
+        /// </summary>
+        public static string Menu_NonWorkingDaysSettings {
+            get {
+                return ResourceManager.GetString("Menu_NonWorkingDaysSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weekends.
+        /// </summary>
+        public static string Menu_NonWorkingDaysWeekends {
+            get {
+                return ResourceManager.GetString("Menu_NonWorkingDaysWeekends", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Open....
         /// </summary>
         public static string Menu_Open {
@@ -214,6 +250,15 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reset Layout.
+        /// </summary>
+        public static string Menu_ResetLayout {
+            get {
+                return ResourceManager.GetString("Menu_ResetLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Save.
         /// </summary>
         public static string Menu_Save {
@@ -228,6 +273,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Menu_SaveAs {
             get {
                 return ResourceManager.GetString("Menu_SaveAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save _Layout.
+        /// </summary>
+        public static string Menu_SaveLayout {
+            get {
+                return ResourceManager.GetString("Menu_SaveLayout", resourceCulture);
             }
         }
         
@@ -250,6 +304,60 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sort.
+        /// </summary>
+        public static string Menu_Sort {
+            get {
+                return ResourceManager.GetString("Menu_Sort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ascending.
+        /// </summary>
+        public static string Menu_SortDirectionAscending {
+            get {
+                return ResourceManager.GetString("Menu_SortDirectionAscending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Descending.
+        /// </summary>
+        public static string Menu_SortDirectionDescending {
+            get {
+                return ResourceManager.GetString("Menu_SortDirectionDescending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created On.
+        /// </summary>
+        public static string Menu_SortModeCreatedOn {
+            get {
+                return ResourceManager.GetString("Menu_SortModeCreatedOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modified On.
+        /// </summary>
+        public static string Menu_SortModeModifiedOn {
+            get {
+                return ResourceManager.GetString("Menu_SortModeModifiedOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        public static string Menu_SortModeName {
+            get {
+                return ResourceManager.GetString("Menu_SortModeName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Themes.
         /// </summary>
         public static string Menu_Themes {
@@ -264,15 +372,6 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Menu_TransitiveReduction {
             get {
                 return ResourceManager.GetString("Menu_TransitiveReduction", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use _Business Days.
-        /// </summary>
-        public static string Menu_UseBusinessDays {
-            get {
-                return ResourceManager.GetString("Menu_UseBusinessDays", resourceCulture);
             }
         }
         

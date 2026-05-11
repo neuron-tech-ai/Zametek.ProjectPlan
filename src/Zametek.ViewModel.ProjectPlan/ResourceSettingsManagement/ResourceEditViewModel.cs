@@ -12,6 +12,8 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public ResourceEditViewModel(IEnumerable<WorkStreamModel> workStreams)
         {
+            m_ColorFormat = new ColorFormatModel();
+
             WorkStreamSelector = new WorkStreamSelectorViewModel(phaseOnly: true);
             IEnumerable<TargetWorkStreamModel> targetWorkStreams = workStreams
                 .Select(
@@ -30,7 +32,7 @@ namespace Zametek.ViewModel.ProjectPlan
 
         #endregion
 
-        #region IResourceManagerViewModel Members
+        #region IResourceEditViewModel Members
 
         private bool m_IsExplicitTarget;
         public bool IsExplicitTarget
@@ -186,6 +188,28 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
+        private ColorFormatModel m_ColorFormat;
+        public ColorFormatModel ColorFormat
+        {
+            get => m_ColorFormat;
+            set
+            {
+                m_ColorFormat = value;
+                this.RaisePropertyChanged();
+            }
+        }
+
+        private bool m_IsColorFormatActive;
+        public bool IsColorFormatActive
+        {
+            get => m_IsColorFormatActive;
+            set
+            {
+                m_IsColorFormatActive = value;
+                this.RaisePropertyChanged();
+            }
+        }
+
         public IWorkStreamSelectorViewModel WorkStreamSelector { get; }
 
         private bool m_IsWorkStreamSelectorActive;
@@ -226,6 +250,9 @@ namespace Zametek.ViewModel.ProjectPlan
 
                 FixedBilling = FixedBilling,
                 IsFixedBillingEdited = IsFixedBillingActive,
+
+                ColorFormat = ColorFormat,
+                IsColorFormatActive = IsColorFormatActive,
 
                 IsInterActivityPhasesEdited = IsWorkStreamSelectorActive,
             };

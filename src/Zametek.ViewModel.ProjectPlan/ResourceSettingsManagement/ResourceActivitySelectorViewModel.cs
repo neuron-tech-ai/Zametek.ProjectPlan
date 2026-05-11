@@ -13,7 +13,7 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
         private readonly ICoreViewModel m_CoreViewModel;
         private readonly int m_ResourceId;
         private readonly int m_Time;
@@ -65,7 +65,7 @@ namespace Zametek.ViewModel.ProjectPlan
         {
             ArgumentNullException.ThrowIfNull(coreViewModel);
             ArgumentNullException.ThrowIfNull(resourceTrackerModel);
-            m_Lock = new object();
+            m_Lock = new();
             m_CoreViewModel = coreViewModel;
             m_TargetResourceActivities = new(s_EqualityComparer);
             m_ReadOnlyTargetResourceActivities = new(m_TargetResourceActivities);
@@ -108,24 +108,24 @@ namespace Zametek.ViewModel.ProjectPlan
         {
             lock (m_Lock)
             {
-                HashSet<int> selectedResourceActivityIds = resourceActivityTrackers.Select(x => x.ActivityId).ToHashSet();
+                HashSet<int> selectedResourceActivityIds = [.. resourceActivityTrackers.Select(x => x.ActivityId)];
 
                 Dictionary<int, ResourceActivityTrackerModel> resourceActivityTrackerLookup = resourceActivityTrackers.ToDictionary(x => x.ActivityId);
 
                 List<ResourceActivityTrackerModel> newResourceActivityTrackers =
-                    m_CoreViewModel.Activities
+                    [.. m_CoreViewModel.RawActivities
                     .Select(activity => new ResourceActivityTrackerModel
                     {
                         Time = m_Time,
                         ResourceId = m_ResourceId,
                         ActivityId = activity.Id,
                         ActivityName = activity.Name,
-                        PercentageWorked = 0
-                    }).ToList();
+                        PercentageWorked = resourceActivityTrackerLookup.TryGetValue(activity.Id, out ResourceActivityTrackerModel? existingTracker) ? existingTracker.PercentageWorked : 0,
+                    })];
 
                 foreach (ResourceActivityTrackerModel resourceActivityTracker in newResourceActivityTrackers)
                 {
-                    resourceActivityTrackerLookup.TryAdd(resourceActivityTracker.ActivityId, resourceActivityTracker);
+                    resourceActivityTrackerLookup[resourceActivityTracker.ActivityId] = resourceActivityTracker;
                 }
 
                 SetTargetResourceActivities(
@@ -139,7 +139,7 @@ namespace Zametek.ViewModel.ProjectPlan
             lock (m_Lock)
             {
                 List<ResourceActivityTrackerModel> newResourceActivityTrackers =
-                    m_CoreViewModel.Activities
+                    [.. m_CoreViewModel.RawActivities
                     .Select(activity => new ResourceActivityTrackerModel
                     {
                         Time = m_Time,
@@ -147,7 +147,7 @@ namespace Zametek.ViewModel.ProjectPlan
                         ActivityId = activity.Id,
                         ActivityName = activity.Name,
                         PercentageWorked = 0
-                    }).ToList();
+                    })];
 
                 SetTargetResourceActivities(
                     newResourceActivityTrackers,
@@ -324,12 +324,8 @@ namespace Zametek.ViewModel.ProjectPlan
 
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects).
                 m_ReviseResourceActivityTrackersSub?.Dispose();
             }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
 
             m_Disposed = true;
         }
@@ -388,14 +384,6 @@ namespace Zametek.ViewModel.ProjectPlan
             {
                 return;
             }
-
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
 
             m_Disposed = true;
         }

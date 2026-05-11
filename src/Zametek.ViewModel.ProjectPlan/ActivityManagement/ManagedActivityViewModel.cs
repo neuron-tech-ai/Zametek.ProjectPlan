@@ -1,4 +1,4 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using System.Collections;
 using System.ComponentModel;
 using System.Reactive.Concurrency;
@@ -56,9 +56,11 @@ namespace Zametek.ViewModel.ProjectPlan
             m_MaximumLatestFinishDateTime = maximumLatestFinishDateTime;
             m_VertexGraphCompiler = vertexGraphCompiler;
             m_ErrorsByPropertyName = [];
+
             ResourceSelector = new ResourceSelectorViewModel();
             m_ResourceSettings = m_CoreViewModel.ResourceSettings;
             RefreshResourceSelector();
+
             WorkStreamSelector = new WorkStreamSelectorViewModel();
             m_WorkStreamSettings = m_CoreViewModel.WorkStreamSettings;
             RefreshWorkStreamSelector();
@@ -118,19 +120,21 @@ namespace Zametek.ViewModel.ProjectPlan
                 .Subscribe(x => WorkStreamSettings = x);
 
             m_DateTimeCalculatorCalculatorModeSub = this
-                .ObservableForProperty(x => x.m_DateTimeCalculator.CalculatorMode)
+                .WhenAnyValue(
+                    x => x.m_DateTimeCalculator.NonWorkingDayMode,
+                    x => x.m_CoreViewModel.HolidaySettings)
                 //.ObserveOn(RxApp.TaskpoolScheduler)
                 .ObserveOn(Scheduler.CurrentThread)
                 .Subscribe(_ => UpdateEarliestStartAndLatestFinishDateTimes());
 
             m_DateTimeCalculatorDisplayModeSub = this
-                .ObservableForProperty(x => x.m_DateTimeCalculator.DisplayMode)
+                .WhenAnyValue(x => x.m_DateTimeCalculator.DisplayMode)
                 //.ObserveOn(RxApp.TaskpoolScheduler)
                 .ObserveOn(Scheduler.CurrentThread)
                 .Subscribe(_ => RefreshStartAndFinishValues());
 
             m_CompilationSub = this
-                .ObservableForProperty(x => x.m_CoreViewModel.GraphCompilation)
+                .WhenAnyValue(x => x.m_CoreViewModel.GraphCompilation)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Subscribe(_ => SetAsCompiled());
 
@@ -424,6 +428,16 @@ namespace Zametek.ViewModel.ProjectPlan
         #endregion
 
         #region IManagedActivityViewModel Members
+
+        public int DisplayOrder
+        {
+            get => DependentActivity.DisplayOrder;
+            set
+            {
+                DependentActivity.DisplayOrder = value;
+                this.RaisePropertyChanged();
+            }
+        }
 
         public bool IsIsolated => m_VertexGraphCompiler.IsIsolated(Id);
 
@@ -824,7 +838,13 @@ namespace Zametek.ViewModel.ProjectPlan
         public DateTime? MinimumEarliestStartDateTime
         {
             get => m_MinimumEarliestStartDateTime?.DateTime;
-            set => SetMinimumEarliestStartTimes(value);
+            set
+            {
+                // Convert to local now using TimeProvider as we do not know
+                // if the input is provided as just a datetime from XAML.
+                DateTimeOffset? input = value is null ? null : m_DateTimeCalculator.GetLocal(value.Value);
+                SetMinimumEarliestStartTimes(input);
+            }
         }
 
         public int? MaximumLatestFinishTime
@@ -849,7 +869,9 @@ namespace Zametek.ViewModel.ProjectPlan
             }
             set
             {
-                DateTimeOffset? input = value;
+                // Convert to local now using TimeProvider as we do not know
+                // if the input is provided as just a datetime from XAML.
+                DateTimeOffset? input = value is null ? null : m_DateTimeCalculator.GetLocal(value.Value);
 
                 if (input.HasValue)
                 {
@@ -889,6 +911,48 @@ namespace Zametek.ViewModel.ProjectPlan
             DependentActivity.SetAsRemovable();
         }
 
+        public DependentActivityModel DeepCopy()
+        {
+            var activityModel = new ActivityModel
+            {
+                Id = Id,
+                DisplayOrder = DisplayOrder,
+                Name = Name,
+                TargetWorkStreams = [.. TargetWorkStreams],
+                TargetResources = [.. TargetResources],
+                TargetResourceOperator = TargetResourceOperator,
+                AllocatedToResources = [.. AllocatedToResources],
+                CanBeRemoved = CanBeRemoved,
+                HasNoCost = HasNoCost,
+                HasNoBilling = HasNoBilling,
+                HasNoEffort = HasNoEffort,
+                HasNoRisk = HasNoRisk,
+                Duration = Duration,
+                FreeSlack = FreeSlack,
+                TotalSlack = TotalSlack,
+                EarliestStartTime = EarliestStartTime,
+                LatestStartTime = LatestStartTime,
+                EarliestFinishTime = EarliestFinishTime,
+                LatestFinishTime = LatestFinishTime,
+                MinimumFreeSlack = MinimumFreeSlack,
+                MinimumEarliestStartTime = MinimumEarliestStartTime,
+                MinimumEarliestStartDateTime = MinimumEarliestStartDateTime,
+                MaximumLatestFinishTime = MaximumLatestFinishTime,
+                MaximumLatestFinishDateTime = MaximumLatestFinishDateTime,
+                Notes = Notes,
+                Trackers = TrackerSet.CloneTrackers(),
+            };
+
+            return new DependentActivityModel
+            {
+                Activity = activityModel,
+                Dependencies = [.. Dependencies],
+                PlanningDependencies = [.. PlanningDependencies],
+                ResourceDependencies = [.. ResourceDependencies],
+                Successors = [.. Successors],
+            };
+        }
+
         public object CloneObject()
         {
             var activity = (IDependentActivity)DependentActivity.CloneObject();
@@ -919,7 +983,7 @@ namespace Zametek.ViewModel.ProjectPlan
                 UpdateActivityTargetResources();
                 UpdateActivityTargetWorkStreams();
                 TrackerSet.RefreshIndex();
-                m_CoreViewModel.IsProjectUpdated = true;
+                m_CoreViewModel.IsProjectScenarioUpdated = true;
                 IsCompiled = false;
             }
         }
@@ -958,16 +1022,12 @@ namespace Zametek.ViewModel.ProjectPlan
 
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects).
                 KillSubscriptions();
                 TrackerSet.Dispose();
                 m_ShowDates?.Dispose();
                 m_HasResources?.Dispose();
                 m_HasWorkStreams?.Dispose();
             }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
 
             m_Disposed = true;
         }

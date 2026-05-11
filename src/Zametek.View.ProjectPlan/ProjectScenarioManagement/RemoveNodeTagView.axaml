@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
+			 xmlns:resources="using:Zametek.Resource.ProjectPlan"
+			 xmlns:local="using:Zametek.View.ProjectPlan"
+			 xmlns:u="https://irihi.tech/ursa"
+			 xmlns:vm="using:Zametek.ViewModel.ProjectPlan"
+			 xmlns:sys="using:System"
+			 x:DataType="vm:RemoveNodeTagViewModel"
+             x:Class="Zametek.View.ProjectPlan.RemoveNodeTagView">
+	<Grid Margin="7">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="80"/>
+			<ColumnDefinition Width="160"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="36"/>
+		</Grid.RowDefinitions>
+
+		<Label Grid.Row="0" Grid.Column="0"
+			   VerticalAlignment="Center"
+			   HorizontalAlignment="Right"
+			   Margin="0"
+			   Padding="7"
+			   Content="{x:Static resources:Labels.Label_DeleteTag}"/>
+
+		<ComboBox Grid.Row="0" Grid.Column="1"
+				  ItemsSource="{Binding Path=Tags, Mode=OneWay}"
+				  SelectedItem="{Binding Path=SelectedTag, Mode=TwoWay}"
+				  Focusable="True"
+				  VerticalAlignment="Center"
+				  VerticalContentAlignment="Center"
+				  HorizontalAlignment="Stretch"
+				  HorizontalContentAlignment="Left">
+			<ComboBox.ItemTemplate>
+				<DataTemplate>
+					<TextBlock VerticalAlignment="Center"
+							   TextAlignment="Left"
+							   Margin="0"
+							   Padding="3"
+							   Classes="displayOnly"
+							   Text="{Binding Path=Label, Mode=OneWay}"/>
+				</DataTemplate>
+			</ComboBox.ItemTemplate>
+		</ComboBox>
+	</Grid>
+</UserControl>

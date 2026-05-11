@@ -19,7 +19,7 @@ namespace Zametek.Resource.ProjectPlan {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Messages {
@@ -61,6 +61,15 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add tag to node.
+        /// </summary>
+        public static string Message_AddTag {
+            get {
+                return ResourceManager.GetString("Message_AddTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Arrow Graph Data contain more than one End node.
         /// </summary>
         public static string Message_ArrowGraphDataContainMultipleEndNodes {
@@ -79,11 +88,56 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} and {1} cannot both be set.
+        /// </summary>
+        public static string Message_CannotBothBeSet {
+            get {
+                return ResourceManager.GetString("Message_CannotBothBeSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot build arrow graph.
         /// </summary>
         public static string Message_CannotBuildArrowGraph {
             get {
                 return ResourceManager.GetString("Message_CannotBuildArrowGraph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot get a project scenario file from a folder node:.
+        /// </summary>
+        public static string Message_CannotGetProjectScenarioFileFromFolderNode {
+            get {
+                return ResourceManager.GetString("Message_CannotGetProjectScenarioFileFromFolderNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot get a project scenario file when project scenario is null:.
+        /// </summary>
+        public static string Message_CannotGetProjectScenarioFileWhenProjectScenarioIsNull {
+            get {
+                return ResourceManager.GetString("Message_CannotGetProjectScenarioFileWhenProjectScenarioIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot set a project scenario on a folder node:.
+        /// </summary>
+        public static string Message_CannotSetProjectScenarioOnFolderNode {
+            get {
+                return ResourceManager.GetString("Message_CannotSetProjectScenarioOnFolderNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot track a project scenario file from a folder node:.
+        /// </summary>
+        public static string Message_CannotTrackProjectScenarioFileFromFolderNode {
+            get {
+                return ResourceManager.GetString("Message_CannotTrackProjectScenarioFileFromFolderNode", resourceCulture);
             }
         }
         
@@ -106,6 +160,15 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converted from previous version.
+        /// </summary>
+        public static string Message_ConvertedFromPreviousVersion {
+            get {
+                return ResourceManager.GetString("Message_ConvertedFromPreviousVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Criticality Weight must be equal or greater than 0.
         /// </summary>
         public static string Message_CriticalityWeightMustBeEqualOrGreaterThanZero {
@@ -114,6 +177,123 @@ namespace Zametek.Resource.ProjectPlan {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Christmas Day.
+        /// </summary>
+        public static string Message_DefaultChristmasDayName {
+            get {
+                return ResourceManager.GetString("Message_DefaultChristmasDayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Christmas holiday.
+        /// </summary>
+        public static string Message_DefaultChristmasDayNotes {
+            get {
+                return ResourceManager.GetString("Message_DefaultChristmasDayNotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Year&apos;s Day.
+        /// </summary>
+        public static string Message_DefaultNewYearsDayName {
+            get {
+                return ResourceManager.GetString("Message_DefaultNewYearsDayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Year&apos;s holiday.
+        /// </summary>
+        public static string Message_DefaultNewYearsDayNotes {
+            get {
+                return ResourceManager.GetString("Message_DefaultNewYearsDayNotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weekends.
+        /// </summary>
+        public static string Message_DefaultWeekendsName {
+            get {
+                return ResourceManager.GetString("Message_DefaultWeekendsName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weekends off.
+        /// </summary>
+        public static string Message_DefaultWeekendsNotes {
+            get {
+                return ResourceManager.GetString("Message_DefaultWeekendsNotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete tag from node.
+        /// </summary>
+        public static string Message_DeleteTag {
+            get {
+                return ResourceManager.GetString("Message_DeleteTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you wish to delete these items?.
+        /// </summary>
+        public static string Message_DoYouWishToDeleteTheseItems {
+            get {
+                return ResourceManager.GetString("Message_DoYouWishToDeleteTheseItems", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate RRULE part: &apos;{0}&apos;.
+        /// </summary>
+        public static string Message_DuplicateRRulePart {
+            get {
+                return ResourceManager.GetString("Message_DuplicateRRulePart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select the properties to edit.
+        /// </summary>
+        public static string Message_EditActivities {
+            get {
+                return ResourceManager.GetString("Message_EditActivities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure custom calendar.
+        /// </summary>
+        public static string Message_EditCustomCalendar {
+            get {
+                return ResourceManager.GetString("Message_EditCustomCalendar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select the properties to edit.
+        /// </summary>
+        public static string Message_EditResources {
+            get {
+                return ResourceManager.GetString("Message_EditResources", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select the properties to edit.
+        /// </summary>
+        public static string Message_EditWorkStreams {
+            get {
+                return ResourceManager.GetString("Message_EditWorkStreams", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Empty filename.
         /// </summary>
@@ -160,29 +340,119 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Frequency value: &apos;{0}&apos;.
+        /// </summary>
+        public static string Message_InvalidFrequencyValue {
+            get {
+                return ResourceManager.GetString("Message_InvalidFrequencyValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid {0} value: &apos;{1}&apos;.
+        /// </summary>
+        public static string Message_InvalidInputValue {
+            get {
+                return ResourceManager.GetString("Message_InvalidInputValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid RRULE part: &apos;{0}&apos;.
+        /// </summary>
+        public static string Message_InvalidRRulePart {
+            get {
+                return ResourceManager.GetString("Message_InvalidRRulePart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to List of Edge IDs and Edges referenced by head Nodes do not match when building Arrow Graph.
         /// </summary>
-        public static string Message_MismatchedEdgeIdsForHeadNodes {
+        public static string Message_MismatchedEdgeIdsForHeadNodesInArrowGraph {
             get {
-                return ResourceManager.GetString("Message_MismatchedEdgeIdsForHeadNodes", resourceCulture);
+                return ResourceManager.GetString("Message_MismatchedEdgeIdsForHeadNodesInArrowGraph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to List of Edge IDs and Edges referenced by head Nodes do not match when building Vertex Graph.
+        /// </summary>
+        public static string Message_MismatchedEdgeIdsForHeadNodesInVertexGraph {
+            get {
+                return ResourceManager.GetString("Message_MismatchedEdgeIdsForHeadNodesInVertexGraph", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to List of Edge IDs and Edges referenced by tail Nodes do not match when building Arrow Graph.
         /// </summary>
-        public static string Message_MismatchedEdgeIdsForTailNodes {
+        public static string Message_MismatchedEdgeIdsForTailNodesInArrowGraph {
             get {
-                return ResourceManager.GetString("Message_MismatchedEdgeIdsForTailNodes", resourceCulture);
+                return ResourceManager.GetString("Message_MismatchedEdgeIdsForTailNodesInArrowGraph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to List of Edge IDs and Edges referenced by tail Nodes do not match when building Vertex Graph.
+        /// </summary>
+        public static string Message_MismatchedEdgeIdsForTailNodesInVertexGraph {
+            get {
+                return ResourceManager.GetString("Message_MismatchedEdgeIdsForTailNodesInVertexGraph", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to List of Node IDs and Nodes associated with Edges do not match when building Arrow Graph.
         /// </summary>
-        public static string Message_MismatchedNodeIdsAssociatedWithEdges {
+        public static string Message_MismatchedNodeIdsAssociatedWithEdgesInArrowGraph {
             get {
-                return ResourceManager.GetString("Message_MismatchedNodeIdsAssociatedWithEdges", resourceCulture);
+                return ResourceManager.GetString("Message_MismatchedNodeIdsAssociatedWithEdgesInArrowGraph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to List of Node IDs and Nodes associated with Edges do not match when building Vertex Graph.
+        /// </summary>
+        public static string Message_MismatchedNodeIdsAssociatedWithEdgesInVertexGraph {
+            get {
+                return ResourceManager.GetString("Message_MismatchedNodeIdsAssociatedWithEdgesInVertexGraph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be greater than zero ({1}).
+        /// </summary>
+        public static string Message_MustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("Message_MustBeGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value must be either -1 or greater than zero.
+        /// </summary>
+        public static string Message_MustBeMinusOneOrGreaterThanZero {
+            get {
+                return ResourceManager.GetString("Message_MustBeMinusOneOrGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name already exists.
+        /// </summary>
+        public static string Message_NameAlreadyExists {
+            get {
+                return ResourceManager.GetString("Message_NameAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name cannot be empty.
+        /// </summary>
+        public static string Message_NameCannotBeEmpty {
+            get {
+                return ResourceManager.GetString("Message_NameCannotBeEmpty", resourceCulture);
             }
         }
         
@@ -214,6 +484,33 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project has unsaved changes. Do you wish to continue?.
+        /// </summary>
+        public static string Message_ProjectUnsavedChanges {
+            get {
+                return ResourceManager.GetString("Message_ProjectUnsavedChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RRule must contain &apos;{0}&apos;.
+        /// </summary>
+        public static string Message_RRuleMustContain {
+            get {
+                return ResourceManager.GetString("Message_RRuleMustContain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scenario has unsaved changes. Do you wish to continue?.
+        /// </summary>
+        public static string Message_ScenarioUnsavedChanges {
+            get {
+                return ResourceManager.GetString("Message_ScenarioUnsavedChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Slack Limit must be equal or greater than 0.
         /// </summary>
         public static string Message_SlackLimitMustBeEqualOrGreaterThanZero {
@@ -232,6 +529,24 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tag already exists.
+        /// </summary>
+        public static string Message_TagAlreadyExists {
+            get {
+                return ResourceManager.GetString("Message_TagAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tag cannot be empty.
+        /// </summary>
+        public static string Message_TagCannotBeEmpty {
+            get {
+                return ResourceManager.GetString("Message_TagCannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tracker Count must be equal or greater than 0.
         /// </summary>
         public static string Message_TrackerCountMustBeEqualOrGreaterThanZero {
@@ -241,20 +556,29 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to determine file directory for User Settings.
+        ///   Looks up a localized string similar to Unable to determine directory for Dock Layout.
         /// </summary>
-        public static string Message_UnableToDetermineUserSettingsDirectory {
+        public static string Message_UnableToDetermineDockLayoutDirectory {
             get {
-                return ResourceManager.GetString("Message_UnableToDetermineUserSettingsDirectory", resourceCulture);
+                return ResourceManager.GetString("Message_UnableToDetermineDockLayoutDirectory", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to determine file path for User Settings.
+        ///   Looks up a localized string similar to Unable to determine folder path for product settings.
         /// </summary>
-        public static string Message_UnableToDetermineUserSettingsPath {
+        public static string Message_UnableToDetermineProductSettingsFolderPath {
             get {
-                return ResourceManager.GetString("Message_UnableToDetermineUserSettingsPath", resourceCulture);
+                return ResourceManager.GetString("Message_UnableToDetermineProductSettingsFolderPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to determine directory for User Settings.
+        /// </summary>
+        public static string Message_UnableToDetermineUserSettingsDirectory {
+            get {
+                return ResourceManager.GetString("Message_UnableToDetermineUserSettingsDirectory", resourceCulture);
             }
         }
         
@@ -331,11 +655,11 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown DateTimeCalculatorMode value:.
+        ///   Looks up a localized string similar to Unknown CurveFittingType value:.
         /// </summary>
-        public static string Message_UnknownDateTimeCalculatorMode {
+        public static string Message_UnknownCurveFittingType {
             get {
-                return ResourceManager.GetString("Message_UnknownDateTimeCalculatorMode", resourceCulture);
+                return ResourceManager.GetString("Message_UnknownCurveFittingType", resourceCulture);
             }
         }
         
@@ -376,6 +700,24 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown NodeBorderDashStyle value.
+        /// </summary>
+        public static string Message_UnknownNodeBorderDashStyleValue {
+            get {
+                return ResourceManager.GetString("Message_UnknownNodeBorderDashStyleValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown NonWorkingDayMode value:.
+        /// </summary>
+        public static string Message_UnknownNonWorkingDayMode {
+            get {
+                return ResourceManager.GetString("Message_UnknownNonWorkingDayMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown ScheduleMode value:.
         /// </summary>
         public static string Message_UnknownScheduleMode {
@@ -385,11 +727,29 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Project has unsaved changes. Do you wish to continue?.
+        ///   Looks up a localized string similar to Unknown SortMode value:.
         /// </summary>
-        public static string Message_UnsavedChanges {
+        public static string Message_UnknownSortDirection {
             get {
-                return ResourceManager.GetString("Message_UnsavedChanges", resourceCulture);
+                return ResourceManager.GetString("Message_UnknownSortDirection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown SortDirection value:.
+        /// </summary>
+        public static string Message_UnknownSortMode {
+            get {
+                return ResourceManager.GetString("Message_UnknownSortMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown TrackedMetric value:.
+        /// </summary>
+        public static string Message_UnknownTrackedMetric {
+            get {
+                return ResourceManager.GetString("Message_UnknownTrackedMetric", resourceCulture);
             }
         }
         
@@ -408,6 +768,24 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Message_VertexGraphCannotContainNormalNodesWithoutAnyStartNodes {
             get {
                 return ResourceManager.GetString("Message_VertexGraphCannotContainNormalNodesWithoutAnyStartNodes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vertex Graph Data contains no End nodes.
+        /// </summary>
+        public static string Message_VertexGraphDataContainsNoEndNodes {
+            get {
+                return ResourceManager.GetString("Message_VertexGraphDataContainsNoEndNodes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vertex Graph Data contains no Start nodes.
+        /// </summary>
+        public static string Message_VertexGraphDataContainsNoStartNodes {
+            get {
+                return ResourceManager.GetString("Message_VertexGraphDataContainsNoStartNodes", resourceCulture);
             }
         }
     }

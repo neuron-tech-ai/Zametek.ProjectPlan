@@ -28,12 +28,24 @@ namespace Zametek.Contract.ProjectPlan
 
         bool ShowSlack { get; set; }
 
+        bool ShowAllConnections { get; set; }
+
         IActivitySelectorViewModel ActivitySelector { get; }
 
+        ICommand ResetGanttChartCommand { get; }
+
         ICommand SaveGanttChartImageFileCommand { get; }
+
+        ICommand ChangeGroupByModeCommand { get; }
+
+        ICommand ChangeAnnotationStyleCommand { get; }
 
         Task SaveGanttChartImageFileAsync(string? filename, int width, int height);
 
         void BuildGanttChartPlotModel();
+
+        void SetActivityDuration(int activityId, int newDuration);
+
+        void AddActivityDependency(int fromActivityId, int toActivityId);
     }
 }

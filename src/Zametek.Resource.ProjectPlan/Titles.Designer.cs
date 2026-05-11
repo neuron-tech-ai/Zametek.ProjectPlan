@@ -19,7 +19,7 @@ namespace Zametek.Resource.ProjectPlan {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Titles {
@@ -70,20 +70,20 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Arrow Graph Settings.
-        /// </summary>
-        public static string Title_ArrowGraphSettingsView {
-            get {
-                return ResourceManager.GetString("Title_ArrowGraphSettingsView", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Arrow Graph.
         /// </summary>
         public static string Title_ArrowGraphView {
             get {
                 return ResourceManager.GetString("Title_ArrowGraphView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string Title_DeleteNodes {
+            get {
+                return ResourceManager.GetString("Title_DeleteNodes", resourceCulture);
             }
         }
         
@@ -106,6 +106,15 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit Custom Calendar.
+        /// </summary>
+        public static string Title_EditCustomCalendar {
+            get {
+                return ResourceManager.GetString("Title_EditCustomCalendar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit Resources.
         /// </summary>
         public static string Title_EditResources {
@@ -113,7 +122,16 @@ namespace Zametek.Resource.ProjectPlan {
                 return ResourceManager.GetString("Title_EditResources", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Work Streams.
+        /// </summary>
+        public static string Title_EditWorkStreams {
+            get {
+                return ResourceManager.GetString("Title_EditWorkStreams", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
@@ -129,6 +147,24 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Title_GanttChartView {
             get {
                 return ResourceManager.GetString("Title_GanttChartView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Graph Settings.
+        /// </summary>
+        public static string Title_GraphSettingsView {
+            get {
+                return ResourceManager.GetString("Title_GraphSettingsView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-Working Day Settings.
+        /// </summary>
+        public static string Title_HolidaySettingsView {
+            get {
+                return ResourceManager.GetString("Title_HolidaySettingsView", resourceCulture);
             }
         }
         
@@ -160,6 +196,24 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scenarios.
+        /// </summary>
+        public static string Title_ProjectScenarios {
+            get {
+                return ResourceManager.GetString("Title_ProjectScenarios", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project has unsaved changes.
+        /// </summary>
+        public static string Title_ProjectUnsavedChanges {
+            get {
+                return ResourceManager.GetString("Title_ProjectUnsavedChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resource Chart.
         /// </summary>
         public static string Title_ResourceChartView {
@@ -178,20 +232,29 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scenario Chart.
+        /// </summary>
+        public static string Title_ScenarioChartView {
+            get {
+                return ResourceManager.GetString("Title_ScenarioChartView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scenario has unsaved changes.
+        /// </summary>
+        public static string Title_ScenarioUnsavedChanges {
+            get {
+                return ResourceManager.GetString("Title_ScenarioUnsavedChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tracking.
         /// </summary>
         public static string Title_TrackingView {
             get {
                 return ResourceManager.GetString("Title_TrackingView", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Project has unsaved changes.
-        /// </summary>
-        public static string Title_UnsavedChanges {
-            get {
-                return ResourceManager.GetString("Title_UnsavedChanges", resourceCulture);
             }
         }
         
@@ -210,6 +273,15 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Title_Values {
             get {
                 return ResourceManager.GetString("Title_Values", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vertex Graph.
+        /// </summary>
+        public static string Title_VertexGraphView {
+            get {
+                return ResourceManager.GetString("Title_VertexGraphView", resourceCulture);
             }
         }
         

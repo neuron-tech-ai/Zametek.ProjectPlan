@@ -6,6 +6,8 @@ namespace Zametek.Contract.ProjectPlan
     public interface IActivitySelectorViewModel
         : IDisposable
     {
+        //IReadOnlyList<ISelectableActivityViewModel> RawTargetActivities { get; }
+
         ReadOnlyObservableCollection<ISelectableActivityViewModel> TargetActivities { get; }
 
         ObservableCollection<ISelectableActivityViewModel> SelectedTargetActivities { get; }

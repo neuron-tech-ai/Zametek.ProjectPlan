@@ -14,46 +14,63 @@ namespace Zametek.ProjectPlan
     {
         private IRootDock? m_RootDock;
 
+        private readonly IDockable m_ProjectScenarioManagerViewModel;
         private readonly IDockable m_ActivitiesManagerViewModel;
         private readonly IDockable m_TrackingManagerViewModel;
         private readonly IDockable m_MetricManagerViewModel;
         private readonly IDockable m_OutputManagerViewModel;
         private readonly IDockable m_ArrowGraphManagerViewModel;
+        private readonly IDockable m_VertexGraphManagerViewModel;
         private readonly IDockable m_ResourceChartManagerViewModel;
         private readonly IDockable m_GanttChartManagerViewModel;
         private readonly IDockable m_EarnedValueChartManagerViewModel;
-        private readonly IDockable m_ArrowGraphSettingsManagerViewModel;
+        private readonly IDockable m_ScenarioChartManagerViewModel;
+        private readonly IDockable m_GraphSettingsManagerViewModel;
         private readonly IDockable m_ResourceSettingsManagerViewModel;
         private readonly IDockable m_WorkStreamSettingsManagerViewModel;
+        private readonly IDockable m_HolidaySettingsManagerViewModel;
 
         public DockFactory(
+            IProjectScenarioManagerViewModel projectScenarioManagerViewModel,
             IActivitiesManagerViewModel activitiesManagerViewModel,
             ITrackingManagerViewModel trackingManagerViewModel,
             IMetricManagerViewModel metricManagerViewModel,
             IOutputManagerViewModel outputManagerViewModel,
             IArrowGraphManagerViewModel arrowGraphManagerViewModel,
+            IVertexGraphManagerViewModel vertexGraphManagerViewModel,
             IResourceChartManagerViewModel resourceChartManagerViewModel,
             IGanttChartManagerViewModel ganttChartManagerViewModel,
             IEarnedValueChartManagerViewModel earnedValueChartManagerViewModel,
-            IArrowGraphSettingsManagerViewModel arrowGraphSettingsManagerViewModel,
+            IScenarioChartManagerViewModel scenarioChartManagerViewModel,
+            IGraphSettingsManagerViewModel graphSettingsManagerViewModel,
             IResourceSettingsManagerViewModel resourceSettingsManagerViewModel,
-            IWorkStreamSettingsManagerViewModel workStreamSettingsManagerViewModel)
+            IWorkStreamSettingsManagerViewModel workStreamSettingsManagerViewModel,
+            IHolidaySettingsManagerViewModel holidaySettingsManagerViewModel)
         {
+            m_ProjectScenarioManagerViewModel = projectScenarioManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(projectScenarioManagerViewModel));
             m_ActivitiesManagerViewModel = activitiesManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(activitiesManagerViewModel));
             m_TrackingManagerViewModel = trackingManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(trackingManagerViewModel));
             m_MetricManagerViewModel = metricManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(metricManagerViewModel));
             m_OutputManagerViewModel = outputManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(outputManagerViewModel));
             m_ArrowGraphManagerViewModel = arrowGraphManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(arrowGraphManagerViewModel));
+            m_VertexGraphManagerViewModel = vertexGraphManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(vertexGraphManagerViewModel));
             m_ResourceChartManagerViewModel = resourceChartManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(resourceChartManagerViewModel));
             m_GanttChartManagerViewModel = ganttChartManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(ganttChartManagerViewModel));
             m_EarnedValueChartManagerViewModel = earnedValueChartManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(earnedValueChartManagerViewModel));
-            m_ArrowGraphSettingsManagerViewModel = arrowGraphSettingsManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(arrowGraphSettingsManagerViewModel));
+            m_ScenarioChartManagerViewModel = scenarioChartManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(scenarioChartManagerViewModel));
+            m_GraphSettingsManagerViewModel = graphSettingsManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(graphSettingsManagerViewModel));
             m_ResourceSettingsManagerViewModel = resourceSettingsManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(resourceSettingsManagerViewModel));
             m_WorkStreamSettingsManagerViewModel = workStreamSettingsManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(workStreamSettingsManagerViewModel));
+            m_HolidaySettingsManagerViewModel = holidaySettingsManagerViewModel as IDockable ?? throw new ArgumentNullException(nameof(holidaySettingsManagerViewModel));
         }
 
         public override IRootDock CreateLayout()
         {
+            {
+                m_ProjectScenarioManagerViewModel.CanClose = false;
+                m_ProjectScenarioManagerViewModel.CanFloat = true;
+                m_ProjectScenarioManagerViewModel.CanPin = true;
+            }
             {
                 m_ActivitiesManagerViewModel.CanClose = false;
                 m_ActivitiesManagerViewModel.CanFloat = true;
@@ -80,6 +97,11 @@ namespace Zametek.ProjectPlan
                 m_ArrowGraphManagerViewModel.CanPin = true;
             }
             {
+                m_VertexGraphManagerViewModel.CanClose = false;
+                m_VertexGraphManagerViewModel.CanFloat = true;
+                m_VertexGraphManagerViewModel.CanPin = true;
+            }
+            {
                 m_ResourceChartManagerViewModel.CanClose = false;
                 m_ResourceChartManagerViewModel.CanFloat = true;
                 m_ResourceChartManagerViewModel.CanPin = true;
@@ -95,9 +117,14 @@ namespace Zametek.ProjectPlan
                 m_EarnedValueChartManagerViewModel.CanPin = true;
             }
             {
-                m_ArrowGraphSettingsManagerViewModel.CanClose = false;
-                m_ArrowGraphSettingsManagerViewModel.CanFloat = true;
-                m_ArrowGraphSettingsManagerViewModel.CanPin = true;
+                m_ScenarioChartManagerViewModel.CanClose = false;
+                m_ScenarioChartManagerViewModel.CanFloat = true;
+                m_ScenarioChartManagerViewModel.CanPin = true;
+            }
+            {
+                m_GraphSettingsManagerViewModel.CanClose = false;
+                m_GraphSettingsManagerViewModel.CanFloat = true;
+                m_GraphSettingsManagerViewModel.CanPin = true;
             }
             {
                 m_ResourceSettingsManagerViewModel.CanClose = false;
@@ -108,6 +135,11 @@ namespace Zametek.ProjectPlan
                 m_WorkStreamSettingsManagerViewModel.CanClose = false;
                 m_WorkStreamSettingsManagerViewModel.CanFloat = true;
                 m_WorkStreamSettingsManagerViewModel.CanPin = true;
+            }
+            {
+                m_HolidaySettingsManagerViewModel.CanClose = false;
+                m_HolidaySettingsManagerViewModel.CanFloat = true;
+                m_HolidaySettingsManagerViewModel.CanPin = true;
             }
 
             var mainLayout = new ProportionalDock
@@ -121,23 +153,57 @@ namespace Zametek.ProjectPlan
                 IsCollapsable = false,
                 VisibleDockables = CreateList<IDockable>
                 (
-                    new ToolDock
+                    new ProportionalDock
                     {
                         Proportion = 0.6,
+                        Orientation = Orientation.Horizontal,
                         ActiveDockable = m_ActivitiesManagerViewModel,
                         CanClose = false,
                         CanFloat = false,
                         CanPin = false,
                         IsCollapsable = false,
-                        VisibleDockables = CreateList(
-                            m_ActivitiesManagerViewModel,
-                            m_GanttChartManagerViewModel,
-                            m_TrackingManagerViewModel,
-                            m_ArrowGraphManagerViewModel,
-                            m_ResourceChartManagerViewModel,
-                            m_EarnedValueChartManagerViewModel),
-                        Alignment = Alignment.Top,
-                        GripMode = GripMode.Visible
+
+                        VisibleDockables = CreateList<IDockable>
+                        (
+                            new ToolDock
+                            {
+                                Proportion = 0.15,
+                                ActiveDockable = m_ProjectScenarioManagerViewModel,
+                                CanClose = false,
+                                CanFloat = false,
+                                CanPin = false,
+                                IsCollapsable = false,
+                                VisibleDockables = CreateList(
+                                    m_ProjectScenarioManagerViewModel),
+                                Alignment = Alignment.Top,
+                                GripMode = GripMode.Visible
+                            },
+                            new ProportionalDockSplitter()
+                            {
+                                Id = "Splitter2",
+                                Title = "VerticalSplitter"
+                            },
+                            new ToolDock
+                            {
+                                Proportion = 0.85,
+                                ActiveDockable = m_ActivitiesManagerViewModel,
+                                CanClose = false,
+                                CanFloat = false,
+                                CanPin = false,
+                                IsCollapsable = false,
+                                VisibleDockables = CreateList(
+                                    m_ActivitiesManagerViewModel,
+                                    m_GanttChartManagerViewModel,
+                                    m_TrackingManagerViewModel,
+                                    m_ArrowGraphManagerViewModel,
+                                    m_VertexGraphManagerViewModel,
+                                    m_ResourceChartManagerViewModel,
+                                    m_EarnedValueChartManagerViewModel,
+                                    m_ScenarioChartManagerViewModel),
+                                Alignment = Alignment.Top,
+                                GripMode = GripMode.Visible
+                            }
+                        ),
                     },
                     new ProportionalDockSplitter()
                     {
@@ -171,7 +237,7 @@ namespace Zametek.ProjectPlan
                             },
                             new ProportionalDockSplitter()
                             {
-                                Id = "Splitter2",
+                                Id = "Splitter3",
                                 Title = "VerticalSplitter"
                             },
                             new ToolDock
@@ -184,8 +250,9 @@ namespace Zametek.ProjectPlan
                                 IsCollapsable = false,
                                 VisibleDockables = CreateList(
                                     m_ResourceSettingsManagerViewModel,
-                                    m_ArrowGraphSettingsManagerViewModel,
-                                    m_WorkStreamSettingsManagerViewModel),
+                                    m_GraphSettingsManagerViewModel,
+                                    m_WorkStreamSettingsManagerViewModel,
+                                    m_HolidaySettingsManagerViewModel),
                                 Alignment = Alignment.Bottom,
                                 GripMode = GripMode.Visible
                             }

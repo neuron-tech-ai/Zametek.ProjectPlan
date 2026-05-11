@@ -1,0 +1,617 @@
+﻿using ReactiveUI;
+using Zametek.Common.ProjectPlan;
+using Zametek.Contract.ProjectPlan;
+
+namespace Zametek.ViewModel.ProjectPlan
+{
+    public class ProjectScenarioDisplaySettingsViewModel
+        : ViewModelBase, IProjectScenarioDisplaySettingsViewModel
+    {
+        #region Fields
+
+        private readonly Lock m_Lock;
+        private readonly IDateTimeCalculator m_DateTimeCalculator;
+        private Action<bool, bool>? m_SetIsProjectScenarioUpdated;
+        private Action? m_IsReadyToCompile;
+
+        #endregion
+
+        #region Ctors
+
+        public ProjectScenarioDisplaySettingsViewModel(
+            IDateTimeCalculator dateTimeCalculator,
+            Action<bool, bool> setIsProjectScenarioUpdated,
+            Action isReadyToCompile)
+        {
+            ArgumentNullException.ThrowIfNull(dateTimeCalculator);
+            ArgumentNullException.ThrowIfNull(setIsProjectScenarioUpdated);
+            ArgumentNullException.ThrowIfNull(isReadyToCompile);
+            m_Lock = new();
+            m_DateTimeCalculator = dateTimeCalculator;
+            m_SetIsProjectScenarioUpdated = setIsProjectScenarioUpdated;
+            m_IsReadyToCompile = isReadyToCompile;
+            m_GanttChartShowConnections = [];
+        }
+
+        #endregion
+
+        #region Private Members
+
+        private void SetIsProjectScenarioUpdated(bool isProjectScenarioUpdated, bool trackStaleOutputs)
+        {
+            lock (m_Lock)
+            {
+                if (m_SetIsProjectScenarioUpdated is not null)
+                {
+                    m_SetIsProjectScenarioUpdated(isProjectScenarioUpdated, trackStaleOutputs);
+                }
+            }
+        }
+
+        private void IsReadyToCompile()
+        {
+            lock (m_Lock)
+            {
+                if (m_IsReadyToCompile is not null)
+                {
+                    m_IsReadyToCompile();
+                }
+            }
+        }
+
+        #endregion
+
+        #region IProjectScenarioDisplaySettingsViewModel Members
+
+        private bool m_ShowDates;
+        public bool ShowDates
+        {
+            get => m_ShowDates;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_ShowDates, value);
+                }
+            }
+        }
+
+        private bool m_UseClassicDates;
+        public bool UseClassicDates
+        {
+            get => m_UseClassicDates;
+            set
+            {
+                lock (m_Lock)
+                {
+                    m_UseClassicDates = value;
+                    if (m_UseClassicDates)
+                    {
+                        m_DateTimeCalculator.DisplayMode = DateTimeDisplayMode.Classic;
+                    }
+                    else
+                    {
+                        m_DateTimeCalculator.DisplayMode = DateTimeDisplayMode.Default;
+                    }
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaisePropertyChanged();
+                }
+            }
+        }
+
+        private NonWorkingDayMode m_NonWorkingDayMode;
+        public NonWorkingDayMode NonWorkingDayMode
+        {
+            get => m_NonWorkingDayMode;
+            set
+            {
+                lock (m_Lock)
+                {
+                    m_NonWorkingDayMode = value;
+                    m_DateTimeCalculator.NonWorkingDayMode = m_NonWorkingDayMode;
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: true);
+                    this.RaisePropertyChanged();
+                    IsReadyToCompile();
+                }
+            }
+        }
+
+        private bool m_HideCost;
+        public bool HideCost
+        {
+            get => m_HideCost;
+            set
+            {
+                lock (m_Lock)
+                {
+                    m_HideCost = value;
+                    this.RaisePropertyChanged();
+                }
+            }
+        }
+
+        private bool m_HideBilling;
+        public bool HideBilling
+        {
+            get => m_HideBilling;
+            set
+            {
+                lock (m_Lock)
+                {
+                    m_HideBilling = value;
+                    this.RaisePropertyChanged();
+                }
+            }
+        }
+
+
+
+        private bool m_ArrowGraphShowNames;
+        public bool ArrowGraphShowNames
+        {
+            get => m_ArrowGraphShowNames;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_ArrowGraphShowNames, value);
+                }
+            }
+        }
+
+
+
+        private bool m_VertexGraphShowNames;
+        public bool VertexGraphShowNames
+        {
+            get => m_VertexGraphShowNames;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_VertexGraphShowNames, value);
+                }
+            }
+        }
+
+
+
+        private GroupByMode m_GanttChartGroupByMode;
+        public GroupByMode GanttChartGroupByMode
+        {
+            get => m_GanttChartGroupByMode;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_GanttChartGroupByMode, value);
+                }
+            }
+        }
+
+        private AnnotationStyle m_GanttChartAnnotationStyle;
+        public AnnotationStyle GanttChartAnnotationStyle
+        {
+            get => m_GanttChartAnnotationStyle;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_GanttChartAnnotationStyle, value);
+                }
+            }
+        }
+
+        private bool m_GanttChartShowGroupLabels;
+        public bool GanttChartShowGroupLabels
+        {
+            get => m_GanttChartShowGroupLabels;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_GanttChartShowGroupLabels, value);
+                }
+            }
+        }
+
+        private bool m_GanttChartShowProjectFinish;
+        public bool GanttChartShowProjectFinish
+        {
+            get => m_GanttChartShowProjectFinish;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_GanttChartShowProjectFinish, value);
+                }
+            }
+        }
+
+        private bool m_GanttChartShowTracking;
+        public bool GanttChartShowTracking
+        {
+            get => m_GanttChartShowTracking;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_GanttChartShowTracking, value);
+                }
+            }
+        }
+
+        private bool m_GanttChartShowToday;
+        public bool GanttChartShowToday
+        {
+            get => m_GanttChartShowToday;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_GanttChartShowToday, value);
+                }
+            }
+        }
+
+        private bool m_GanttChartShowMilestones;
+        public bool GanttChartShowMilestones
+        {
+            get => m_GanttChartShowMilestones;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_GanttChartShowMilestones, value);
+                }
+            }
+        }
+
+        private bool m_GanttChartShowSlack;
+        public bool GanttChartShowSlack
+        {
+            get => m_GanttChartShowSlack;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_GanttChartShowSlack, value);
+                }
+            }
+        }
+
+        private readonly List<int> m_GanttChartShowConnections;
+        public List<int> GanttChartShowConnections => m_GanttChartShowConnections;
+
+        private ReadyToRevise m_IsReadyToReviseGanttChartShowConnections;
+        public ReadyToRevise IsReadyToReviseGanttChartShowConnections
+        {
+            get => m_IsReadyToReviseGanttChartShowConnections;
+            set
+            {
+                lock (m_Lock)
+                {
+                    //SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    m_IsReadyToReviseGanttChartShowConnections = value;
+                    this.RaisePropertyChanged();
+                }
+            }
+        }
+
+        private AllocationMode m_ResourceChartAllocationMode;
+        public AllocationMode ResourceChartAllocationMode
+        {
+            get => m_ResourceChartAllocationMode;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_ResourceChartAllocationMode, value);
+                }
+            }
+        }
+
+        private ScheduleMode m_ResourceChartScheduleMode;
+        public ScheduleMode ResourceChartScheduleMode
+        {
+            get => m_ResourceChartScheduleMode;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_ResourceChartScheduleMode, value);
+                }
+            }
+        }
+
+        private DisplayStyle m_ResourceChartDisplayStyle;
+        public DisplayStyle ResourceChartDisplayStyle
+        {
+            get => m_ResourceChartDisplayStyle;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_ResourceChartDisplayStyle, value);
+                }
+            }
+        }
+
+        private bool m_ResourceChartShowToday;
+        public bool ResourceChartShowToday
+        {
+            get => m_ResourceChartShowToday;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_ResourceChartShowToday, value);
+                }
+            }
+        }
+
+        private bool m_ResourceChartShowMilestones;
+        public bool ResourceChartShowMilestones
+        {
+            get => m_ResourceChartShowMilestones;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_ResourceChartShowMilestones, value);
+                }
+            }
+        }
+
+
+
+        private bool m_EarnedValueShowProjections;
+        public bool EarnedValueShowProjections
+        {
+            get => m_EarnedValueShowProjections;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_EarnedValueShowProjections, value);
+                }
+            }
+        }
+
+        private bool m_EarnedValueShowToday;
+        public bool EarnedValueShowToday
+        {
+            get => m_EarnedValueShowToday;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_EarnedValueShowToday, value);
+                }
+            }
+        }
+
+        private bool m_EarnedValueShowMilestones;
+        public bool EarnedValueShowMilestones
+        {
+            get => m_EarnedValueShowMilestones;
+            set
+            {
+                lock (m_Lock)
+                {
+                    SetIsProjectScenarioUpdated(isProjectScenarioUpdated: true, trackStaleOutputs: false);
+                    this.RaiseAndSetIfChanged(ref m_EarnedValueShowMilestones, value);
+                }
+            }
+        }
+
+        public void SetIsProjectScenarioUpdated(bool isProjectScenarioUpdated)
+        {
+            lock (m_Lock)
+            {
+                SetIsProjectScenarioUpdated(isProjectScenarioUpdated, trackStaleOutputs: false);
+            }
+        }
+
+        public void SetValues(ProjectScenarioDisplaySettingsModel model)
+        {
+            lock (m_Lock)
+            {
+                if (ShowDates != model.ShowDates)
+                {
+                    ShowDates = model.ShowDates;
+                }
+                if (UseClassicDates != model.UseClassicDates)
+                {
+                    UseClassicDates = model.UseClassicDates;
+                }
+                if (NonWorkingDayMode != model.NonWorkingDayMode)
+                {
+                    NonWorkingDayMode = model.NonWorkingDayMode;
+                }
+                if (HideCost != model.HideCost)
+                {
+                    HideCost = model.HideCost;
+                }
+                if (HideBilling != model.HideBilling)
+                {
+                    HideBilling = model.HideBilling;
+                }
+
+
+                if (ArrowGraphShowNames != model.ArrowGraphShowNames)
+                {
+                    ArrowGraphShowNames = model.ArrowGraphShowNames;
+                }
+
+
+                if (VertexGraphShowNames != model.VertexGraphShowNames)
+                {
+                    VertexGraphShowNames = model.VertexGraphShowNames;
+                }
+
+
+                if (GanttChartGroupByMode != model.GanttChartGroupByMode)
+                {
+                    GanttChartGroupByMode = model.GanttChartGroupByMode;
+                }
+                if (GanttChartAnnotationStyle != model.GanttChartAnnotationStyle)
+                {
+                    GanttChartAnnotationStyle = model.GanttChartAnnotationStyle;
+                }
+                if (GanttChartShowGroupLabels != model.GanttChartShowGroupLabels)
+                {
+                    GanttChartShowGroupLabels = model.GanttChartShowGroupLabels;
+                }
+                if (GanttChartShowProjectFinish != model.GanttChartShowProjectFinish)
+                {
+                    GanttChartShowProjectFinish = model.GanttChartShowProjectFinish;
+                }
+                if (GanttChartShowTracking != model.GanttChartShowTracking)
+                {
+                    GanttChartShowTracking = model.GanttChartShowTracking;
+                }
+                if (GanttChartShowToday != model.GanttChartShowToday)
+                {
+                    GanttChartShowToday = model.GanttChartShowToday;
+                }
+                if (GanttChartShowMilestones != model.GanttChartShowMilestones)
+                {
+                    GanttChartShowMilestones = model.GanttChartShowMilestones;
+                }
+                if (GanttChartShowSlack != model.GanttChartShowSlack)
+                {
+                    GanttChartShowSlack = model.GanttChartShowSlack;
+                }
+                GanttChartShowConnections.Clear();
+                GanttChartShowConnections.AddRange(model.GanttChartShowConnections);
+                IsReadyToReviseGanttChartShowConnections = ReadyToRevise.Yes;
+
+
+                if (ResourceChartAllocationMode != model.ResourceChartAllocationMode)
+                {
+                    ResourceChartAllocationMode = model.ResourceChartAllocationMode;
+                }
+                if (ResourceChartScheduleMode != model.ResourceChartScheduleMode)
+                {
+                    ResourceChartScheduleMode = model.ResourceChartScheduleMode;
+                }
+                if (ResourceChartDisplayStyle != model.ResourceChartDisplayStyle)
+                {
+                    ResourceChartDisplayStyle = model.ResourceChartDisplayStyle;
+                }
+                if (ResourceChartShowToday != model.ResourceChartShowToday)
+                {
+                    ResourceChartShowToday = model.ResourceChartShowToday;
+                }
+                if (ResourceChartShowMilestones != model.ResourceChartShowMilestones)
+                {
+                    ResourceChartShowMilestones = model.ResourceChartShowMilestones;
+                }
+
+
+                if (EarnedValueShowProjections != model.EarnedValueShowProjections)
+                {
+                    EarnedValueShowProjections = model.EarnedValueShowProjections;
+                }
+                if (EarnedValueShowToday != model.EarnedValueShowToday)
+                {
+                    EarnedValueShowToday = model.EarnedValueShowToday;
+                }
+                if (EarnedValueShowMilestones != model.EarnedValueShowMilestones)
+                {
+                    EarnedValueShowMilestones = model.EarnedValueShowMilestones;
+                }
+            }
+        }
+
+        public ProjectScenarioDisplaySettingsModel GetValues()
+        {
+            lock (m_Lock)
+            {
+                return new ProjectScenarioDisplaySettingsModel
+                {
+                    ShowDates = ShowDates,
+                    UseClassicDates = UseClassicDates,
+                    NonWorkingDayMode = NonWorkingDayMode,
+                    HideCost = HideCost,
+                    HideBilling = HideBilling,
+
+                    ArrowGraphShowNames = ArrowGraphShowNames,
+
+                    VertexGraphShowNames = VertexGraphShowNames,
+
+                    GanttChartGroupByMode = GanttChartGroupByMode,
+                    GanttChartAnnotationStyle = GanttChartAnnotationStyle,
+                    GanttChartShowGroupLabels = GanttChartShowGroupLabels,
+                    GanttChartShowProjectFinish = GanttChartShowProjectFinish,
+                    GanttChartShowTracking = GanttChartShowTracking,
+                    GanttChartShowToday = GanttChartShowToday,
+                    GanttChartShowMilestones = GanttChartShowMilestones,
+                    GanttChartShowSlack = GanttChartShowSlack,
+                    GanttChartShowConnections = [.. GanttChartShowConnections],
+
+                    ResourceChartAllocationMode = ResourceChartAllocationMode,
+                    ResourceChartScheduleMode = ResourceChartScheduleMode,
+                    ResourceChartDisplayStyle = ResourceChartDisplayStyle,
+                    ResourceChartShowToday = ResourceChartShowToday,
+                    ResourceChartShowMilestones = ResourceChartShowMilestones,
+
+                    EarnedValueShowProjections = EarnedValueShowProjections,
+                    EarnedValueShowToday = EarnedValueShowToday,
+                    EarnedValueShowMilestones = EarnedValueShowMilestones,
+                };
+            }
+        }
+
+        #endregion
+
+        #region IDisposable Members
+
+        private bool m_Disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (m_Disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                m_SetIsProjectScenarioUpdated = null;
+                m_IsReadyToCompile = null;
+            }
+
+            m_Disposed = true;
+        }
+
+        public void Dispose()
+        {
+            // Dispose of unmanaged resources.
+            Dispose(true);
+            // Suppress finalization.
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+    }
+}

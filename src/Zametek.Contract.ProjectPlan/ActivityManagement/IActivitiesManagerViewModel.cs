@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace Zametek.Contract.ProjectPlan
@@ -14,21 +14,37 @@ namespace Zametek.Contract.ProjectPlan
 
         bool HasCompilationErrors { get; }
 
-        bool HasActivities { get; }
+        bool HasSelectedActivity { get; }
+
+        bool HasSelectedActivities { get; }
 
         bool HideCost { get; }
 
         bool HideBilling { get; }
 
+        IReadOnlyList<IManagedActivityViewModel> RawActivities { get; }
+
         ReadOnlyObservableCollection<IManagedActivityViewModel> Activities { get; }
+
+        ObservableCollection<IManagedActivityViewModel> OrderableActivities { get; }
+
+        int ScrollToActivityId { get; }
+
+        void SelectActivityById(int activityId);
 
         ICommand SetSelectedManagedActivitiesCommand { get; }
 
         ICommand AddManagedActivityCommand { get; }
 
+        ICommand InsertManagedActivityCommand { get; }
+
         ICommand RemoveManagedActivitiesCommand { get; }
 
         ICommand EditManagedActivitiesCommand { get; }
+
+        ICommand DuplicateManagedActivityCommand { get; }
+
+        ICommand RenumberActivitiesCommand { get; }
 
         ICommand AddMilestoneCommand { get; }
     }

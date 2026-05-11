@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using ReactiveUI;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
@@ -14,7 +14,7 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
 
         private readonly ICoreViewModel m_CoreViewModel;
         private readonly IDialogService m_DialogService;
@@ -29,16 +29,19 @@ namespace Zametek.ViewModel.ProjectPlan
         {
             ArgumentNullException.ThrowIfNull(coreViewModel);
             ArgumentNullException.ThrowIfNull(dialogService);
-            m_Lock = new object();
+            m_Lock = new();
             m_CoreViewModel = coreViewModel;
             m_DialogService = dialogService;
             SelectedActivities = new ConcurrentDictionary<int, IManagedActivityViewModel>();
-            m_HasActivities = false;
+            m_HasSelectedActivity = false;
+            m_HasSelectedActivities = false;
 
             SetSelectedManagedActivitiesCommand = ReactiveCommand.Create<SelectionChangedEventArgs>(SetSelectedManagedActivities);
             AddManagedActivityCommand = ReactiveCommand.CreateFromTask(AddManagedActivityAsync);
-            RemoveManagedActivitiesCommand = ReactiveCommand.CreateFromTask(RemoveManagedActivitiesAsync, this.WhenAnyValue(am => am.HasActivities));
-            EditManagedActivitiesCommand = ReactiveCommand.CreateFromTask(EditManagedActivitiesAsync, this.WhenAnyValue(am => am.HasActivities));
+            InsertManagedActivityCommand = ReactiveCommand.CreateFromTask(InsertManagedActivityAsync, this.WhenAnyValue(am => am.HasSelectedActivity));
+            RemoveManagedActivitiesCommand = ReactiveCommand.CreateFromTask(RemoveManagedActivitiesAsync, this.WhenAnyValue(am => am.HasSelectedActivities));
+            EditManagedActivitiesCommand = ReactiveCommand.CreateFromTask(EditManagedActivitiesAsync, this.WhenAnyValue(am => am.HasSelectedActivities));
+            DuplicateManagedActivityCommand = ReactiveCommand.CreateFromTask(DuplicateManagedActivityAsync, this.WhenAnyValue(am => am.HasSelectedActivity));
 
             m_IsBusy = this
                 .WhenAnyValue(am => am.m_CoreViewModel.IsBusy)
@@ -65,12 +68,14 @@ namespace Zametek.ViewModel.ProjectPlan
                 .WhenAnyValue(am => am.m_CoreViewModel.DisplaySettingsViewModel.HideBilling)
                 .ToProperty(this, am => am.HideBilling);
 
+            RenumberActivitiesCommand = ReactiveCommand.CreateFromTask(RenumberActivitiesAsync);
+
             AddMilestoneCommand = ReactiveCommand.CreateFromTask(
                 AddMilestoneAsync,
                 this.WhenAnyValue(
-                    am => am.HasActivities,
+                    am => am.HasSelectedActivities,
                     am => am.HasCompilationErrors,
-                    (bool hasActivities, bool hasCompilationErrors) => hasActivities && !hasCompilationErrors),
+                    (hasActivities, hasCompilationErrors) => hasActivities && !hasCompilationErrors),
                 RxApp.MainThreadScheduler);
 
             Id = Resource.ProjectPlan.Titles.Title_ActivitiesView;
@@ -95,7 +100,7 @@ namespace Zametek.ViewModel.ProjectPlan
                 {
                     foreach (var managedActivityViewModel in args.AddedItems.OfType<ManagedActivityViewModel>())
                     {
-                        SelectedActivities.TryAdd(managedActivityViewModel.Id, managedActivityViewModel);
+                        SelectedActivities[managedActivityViewModel.Id] = managedActivityViewModel;
                     }
                 }
                 if (args.RemovedItems is not null)
@@ -106,7 +111,8 @@ namespace Zametek.ViewModel.ProjectPlan
                     }
                 }
 
-                HasActivities = SelectedActivities.Any();
+                HasSelectedActivities = SelectedActivities.Any();
+                HasSelectedActivity = HasSelectedActivities && SelectedActivities.Count == 1;
             }
         }
 
@@ -114,12 +120,7 @@ namespace Zametek.ViewModel.ProjectPlan
         {
             try
             {
-                lock (m_Lock)
-                {
-                    m_CoreViewModel.AddManagedActivity();
-                    m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
-                }
-                await RunAutoCompileAsync();
+                await AddManagedActivityInternalAsync();
             }
             catch (Exception ex)
             {
@@ -130,23 +131,28 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        private async Task RemoveManagedActivitiesAsync()
+        private async Task AddManagedActivityInternalAsync() => await Task.Run(AddManagedActivityInternal);
+
+        private void AddManagedActivityInternal()
+        {
+            lock (m_Lock)
+            {
+                int displayOrder = m_CoreViewModel
+                    .RawActivities
+                    .DefaultIfEmpty()
+                    .Max(x => x?.DisplayOrder ?? 0) + 1;
+
+                m_CoreViewModel.AddManagedActivity(displayOrder);
+                m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
+            }
+            m_CoreViewModel.RunAutoCompile();
+        }
+
+        private async Task InsertManagedActivityAsync()
         {
             try
             {
-                lock (m_Lock)
-                {
-                    ICollection<int> activityIds = SelectedActivities.Keys;
-
-                    if (activityIds.Count == 0)
-                    {
-                        return;
-                    }
-
-                    m_CoreViewModel.RemoveManagedActivities(activityIds);
-                    m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
-                }
-                await RunAutoCompileAsync();
+                await InsertManagedActivityInternalAsync();
             }
             catch (Exception ex)
             {
@@ -155,6 +161,115 @@ namespace Zametek.ViewModel.ProjectPlan
                     string.Empty,
                     ex.Message);
             }
+        }
+
+        private async Task InsertManagedActivityInternalAsync() => await Task.Run(InsertManagedActivityInternal);
+
+        private void InsertManagedActivityInternal()
+        {
+            lock (m_Lock)
+            {
+                SelectedActivities.TryGetValue(SelectedActivities.Keys.FirstOrDefault(), out IManagedActivityViewModel? selectedActivity);
+
+                if (selectedActivity is null)
+                {
+                    return;
+                }
+
+                int selectedId = selectedActivity.Id;
+                int newDisplayOrder = selectedActivity.DisplayOrder - 1;
+                int newId = m_CoreViewModel.AddManagedActivity(newDisplayOrder);
+
+                m_CoreViewModel.UpdateManagedActivityIds([(newId, selectedId)]);
+                m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
+            }
+            m_CoreViewModel.RunAutoCompile();
+        }
+
+        private async Task DuplicateManagedActivityAsync()
+        {
+            try
+            {
+                await DuplicateManagedActivityInternalAsync();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        private async Task DuplicateManagedActivityInternalAsync() => await Task.Run(DuplicateManagedActivityInternal);
+
+        private void DuplicateManagedActivityInternal()
+        {
+            lock (m_Lock)
+            {
+                SelectedActivities.TryGetValue(SelectedActivities.Keys.FirstOrDefault(), out IManagedActivityViewModel? selectedActivity);
+
+                if (selectedActivity is null)
+                {
+                    return;
+                }
+
+                int newId = m_CoreViewModel.GetNextActivityId();
+
+                DependentActivityModel duplicateModel = selectedActivity.DeepCopy();
+
+                // Clear the trackers because otherwise we would need to alter
+                // all the IDs to correspond with the new ID.
+                var activityModel = duplicateModel.Activity with
+                {
+                    Id = newId,
+                    Trackers = [],
+                };
+
+                duplicateModel = duplicateModel with
+                {
+                    Activity = activityModel,
+                };
+
+                m_CoreViewModel.AddManagedActivities([duplicateModel]);
+                m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
+            }
+
+            m_CoreViewModel.RunAutoCompile();
+        }
+
+        private async Task RemoveManagedActivitiesAsync()
+        {
+            try
+            {
+                await RemoveManagedActivitiesInternalAsync();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        private async Task RemoveManagedActivitiesInternalAsync() => await Task.Run(RemoveManagedActivitiesInternal);
+
+        private void RemoveManagedActivitiesInternal()
+        {
+            lock (m_Lock)
+            {
+                ICollection<int> activityIds = SelectedActivities.Keys;
+
+                if (activityIds.Count == 0)
+                {
+                    return;
+                }
+
+                m_CoreViewModel.RemoveManagedActivities(activityIds);
+                m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
+            }
+            m_CoreViewModel.RunAutoCompile();
         }
 
         private async Task EditManagedActivitiesAsync()
@@ -166,32 +281,19 @@ namespace Zametek.ViewModel.ProjectPlan
                     m_CoreViewModel.WorkStreamSettings.WorkStreams);
 
                 bool result = await m_DialogService.ShowContextAsync(
-                    Resource.ProjectPlan.Titles.Title_EditActivities,
-                    editViewModel);
+                    title: Resource.ProjectPlan.Titles.Title_EditActivities,
+                    header: string.Empty,
+                    message: $@"**{Resource.ProjectPlan.Messages.Message_EditActivities}**",
+                    context: editViewModel,
+                    markdown: true);
 
                 if (!result)
                 {
                     return;
                 }
 
-                lock (m_Lock)
-                {
-                    ICollection<int> activityIds = SelectedActivities.Keys;
-
-                    if (activityIds.Count == 0)
-                    {
-                        return;
-                    }
-
-                    UpdateDependentActivityModel updateModel = editViewModel.BuildUpdateModel();
-
-                    IEnumerable<UpdateDependentActivityModel> updateModels = activityIds
-                        .Select(x => updateModel with { Id = x })
-                        .ToList();
-
-                    m_CoreViewModel.UpdateManagedActivities(updateModels);
-                }
-                await RunAutoCompileAsync();
+                UpdateDependentActivityModel updateModel = editViewModel.BuildUpdateModel();
+                await EditManagedActivitiesInternalAsync(updateModel);
             }
             catch (Exception ex)
             {
@@ -200,25 +302,75 @@ namespace Zametek.ViewModel.ProjectPlan
                     string.Empty,
                     ex.Message);
             }
+        }
+
+        private async Task EditManagedActivitiesInternalAsync(UpdateDependentActivityModel updateModel) =>
+            await Task.Run(() => EditManagedActivitiesInternal(updateModel));
+
+        private void EditManagedActivitiesInternal(UpdateDependentActivityModel updateModel)
+        {
+            lock (m_Lock)
+            {
+                ICollection<int> activityIds = SelectedActivities.Keys;
+
+                if (activityIds.Count == 0)
+                {
+                    return;
+                }
+
+                IEnumerable<UpdateDependentActivityModel> updateModels = [.. activityIds.Select(x => updateModel with { Id = x })];
+
+                m_CoreViewModel.UpdateManagedActivities(updateModels);
+            }
+            m_CoreViewModel.RunAutoCompile();
+        }
+
+        private async Task RenumberActivitiesAsync()
+        {
+            try
+            {
+                await RenumberActivitiesInternalAsync();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        private async Task RenumberActivitiesInternalAsync() =>
+            await Task.Run(RenumberActivitiesInternal);
+
+        private void RenumberActivitiesInternal()
+        {
+            lock (m_Lock)
+            {
+                m_CoreViewModel.UpdateActivityDisplayOrders();
+
+                List<(int oldId, int newId)> mappedIds = [];
+
+                int count = OrderableActivities.Count;
+
+                for (int i = 0; i < count; i++)
+                {
+                    int oldId = OrderableActivities[i].Id;
+                    int newId = i + 1;
+                    mappedIds.Add((oldId, newId));
+                }
+
+                m_CoreViewModel.UpdateManagedActivityIds(mappedIds);
+                m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
+            }
+            m_CoreViewModel.RunAutoCompile();
         }
 
         private async Task AddMilestoneAsync()
         {
             try
             {
-                lock (m_Lock)
-                {
-                    ICollection<int> activityIds = SelectedActivities.Keys;
-
-                    if (activityIds.Count == 0)
-                    {
-                        return;
-                    }
-
-                    m_CoreViewModel.AddMilestone(activityIds);
-                    m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
-                }
-                await RunAutoCompileAsync();
+                await AddMilestoneInternalAsync();
             }
             catch (Exception ex)
             {
@@ -229,7 +381,25 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        private async Task RunAutoCompileAsync() => await Task.Run(m_CoreViewModel.RunAutoCompile);
+        private async Task AddMilestoneInternalAsync() =>
+            await Task.Run(AddMilestoneInternal);
+
+        private void AddMilestoneInternal()
+        {
+            lock (m_Lock)
+            {
+                ICollection<int> activityIds = SelectedActivities.Keys;
+
+                if (activityIds.Count == 0)
+                {
+                    return;
+                }
+
+                m_CoreViewModel.AddMilestone(activityIds);
+                m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
+            }
+            m_CoreViewModel.RunAutoCompile();
+        }
 
         #endregion
 
@@ -253,29 +423,76 @@ namespace Zametek.ViewModel.ProjectPlan
         private readonly ObservableAsPropertyHelper<bool> m_HideBilling;
         public bool HideBilling => m_HideBilling.Value;
 
-        private bool m_HasActivities;
-        public bool HasActivities
+        private bool m_HasSelectedActivity;
+        public bool HasSelectedActivity
         {
-            get => m_HasActivities;
+            get => m_HasSelectedActivity;
             set
             {
                 lock (m_Lock)
                 {
-                    m_HasActivities = value;
+                    m_HasSelectedActivity = value;
                     this.RaisePropertyChanged();
                 }
             }
         }
 
+        private bool m_HasSelectedActivities;
+        public bool HasSelectedActivities
+        {
+            get => m_HasSelectedActivities;
+            set
+            {
+                lock (m_Lock)
+                {
+                    m_HasSelectedActivities = value;
+                    this.RaisePropertyChanged();
+                }
+            }
+        }
+
+        public IReadOnlyList<IManagedActivityViewModel> RawActivities => m_CoreViewModel.RawActivities;
+
         public ReadOnlyObservableCollection<IManagedActivityViewModel> Activities => m_CoreViewModel.Activities;
+
+        public ObservableCollection<IManagedActivityViewModel> OrderableActivities => m_CoreViewModel.OrderableActivities;
+
+        private int m_ScrollToActivityId;
+        public int ScrollToActivityId
+        {
+            get => m_ScrollToActivityId;
+            private set => this.RaiseAndSetIfChanged(ref m_ScrollToActivityId, value);
+        }
+
+        public void SelectActivityById(int activityId)
+        {
+            lock (m_Lock)
+            {
+                IManagedActivityViewModel? activity = RawActivities.FirstOrDefault(a => a.Id == activityId);
+                if (activity is not null)
+                {
+                    SelectedActivities.Clear();
+                    SelectedActivities[activityId] = activity;
+                    HasSelectedActivities = true;
+                    HasSelectedActivity = true;
+                    ScrollToActivityId = activityId;
+                }
+            }
+        }
 
         public ICommand SetSelectedManagedActivitiesCommand { get; }
 
         public ICommand AddManagedActivityCommand { get; }
 
+        public ICommand InsertManagedActivityCommand { get; }
+
         public ICommand RemoveManagedActivitiesCommand { get; }
 
         public ICommand EditManagedActivitiesCommand { get; }
+
+        public ICommand DuplicateManagedActivityCommand { get; }
+
+        public ICommand RenumberActivitiesCommand { get; }
 
         public ICommand AddMilestoneCommand { get; }
 

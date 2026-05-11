@@ -19,7 +19,7 @@ namespace Zametek.Resource.ProjectPlan {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Enums {
@@ -124,6 +124,78 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exponential.
+        /// </summary>
+        public static string Enum_CurveFittingType_Exponential {
+            get {
+                return ResourceManager.GetString("Enum_CurveFittingType_Exponential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Linear.
+        /// </summary>
+        public static string Enum_CurveFittingType_Linear {
+            get {
+                return ResourceManager.GetString("Enum_CurveFittingType_Linear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logarithmic.
+        /// </summary>
+        public static string Enum_CurveFittingType_Logarithmic {
+            get {
+                return ResourceManager.GetString("Enum_CurveFittingType_Logarithmic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        public static string Enum_CurveFittingType_None {
+            get {
+                return ResourceManager.GetString("Enum_CurveFittingType_None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Polynomial (2nd order).
+        /// </summary>
+        public static string Enum_CurveFittingType_PolynomialOrder2 {
+            get {
+                return ResourceManager.GetString("Enum_CurveFittingType_PolynomialOrder2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Polynomial (3rd order).
+        /// </summary>
+        public static string Enum_CurveFittingType_PolynomialOrder3 {
+            get {
+                return ResourceManager.GetString("Enum_CurveFittingType_PolynomialOrder3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Polynomial (4th order).
+        /// </summary>
+        public static string Enum_CurveFittingType_PolynomialOrder4 {
+            get {
+                return ResourceManager.GetString("Enum_CurveFittingType_PolynomialOrder4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Power.
+        /// </summary>
+        public static string Enum_CurveFittingType_Power {
+            get {
+                return ResourceManager.GetString("Enum_CurveFittingType_Power", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Block.
         /// </summary>
         public static string Enum_DisplayStyle_Block {
@@ -223,6 +295,42 @@ namespace Zametek.Resource.ProjectPlan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Daily.
+        /// </summary>
+        public static string Enum_RecurrenceFrequency_Daily {
+            get {
+                return ResourceManager.GetString("Enum_RecurrenceFrequency_Daily", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monthly.
+        /// </summary>
+        public static string Enum_RecurrenceFrequency_Monthly {
+            get {
+                return ResourceManager.GetString("Enum_RecurrenceFrequency_Monthly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weekly.
+        /// </summary>
+        public static string Enum_RecurrenceFrequency_Weekly {
+            get {
+                return ResourceManager.GetString("Enum_RecurrenceFrequency_Weekly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yearly.
+        /// </summary>
+        public static string Enum_RecurrenceFrequency_Yearly {
+            get {
+                return ResourceManager.GetString("Enum_RecurrenceFrequency_Yearly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Combined.
         /// </summary>
         public static string Enum_ScheduleMode_Combined {
@@ -246,6 +354,303 @@ namespace Zametek.Resource.ProjectPlan {
         public static string Enum_ScheduleMode_Unscheduled {
             get {
                 return ResourceManager.GetString("Enum_ScheduleMode_Unscheduled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct Billing.
+        /// </summary>
+        public static string Enum_TrackedMetric_BillingsDirect {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_BillingsDirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indirect Billing.
+        /// </summary>
+        public static string Enum_TrackedMetric_BillingsIndirect {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_BillingsIndirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other Billing.
+        /// </summary>
+        public static string Enum_TrackedMetric_BillingsOther {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_BillingsOther", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Billing.
+        /// </summary>
+        public static string Enum_TrackedMetric_BillingsTotal {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_BillingsTotal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct Cost.
+        /// </summary>
+        public static string Enum_TrackedMetric_CostsDirect {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_CostsDirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indirect Cost.
+        /// </summary>
+        public static string Enum_TrackedMetric_CostsIndirect {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_CostsIndirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other Cost.
+        /// </summary>
+        public static string Enum_TrackedMetric_CostsOther {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_CostsOther", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Cost.
+        /// </summary>
+        public static string Enum_TrackedMetric_CostsTotal {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_CostsTotal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity Effort.
+        /// </summary>
+        public static string Enum_TrackedMetric_EffortsActivity {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_EffortsActivity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct Effort.
+        /// </summary>
+        public static string Enum_TrackedMetric_EffortsDirect {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_EffortsDirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Efficiency.
+        /// </summary>
+        public static string Enum_TrackedMetric_EffortsEfficiency {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_EffortsEfficiency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indirect Effort.
+        /// </summary>
+        public static string Enum_TrackedMetric_EffortsIndirect {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_EffortsIndirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other Effort.
+        /// </summary>
+        public static string Enum_TrackedMetric_EffortsOther {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_EffortsOther", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Effort.
+        /// </summary>
+        public static string Enum_TrackedMetric_EffortsTotal {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_EffortsTotal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct Margin.
+        /// </summary>
+        public static string Enum_TrackedMetric_MarginsDirect {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_MarginsDirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct Abs. Margin.
+        /// </summary>
+        public static string Enum_TrackedMetric_MarginsDirectAbsolute {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_MarginsDirectAbsolute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indirect Margin.
+        /// </summary>
+        public static string Enum_TrackedMetric_MarginsIndirect {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_MarginsIndirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indirect Abs. Margin.
+        /// </summary>
+        public static string Enum_TrackedMetric_MarginsIndirectAbsolute {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_MarginsIndirectAbsolute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other Margin.
+        /// </summary>
+        public static string Enum_TrackedMetric_MarginsOther {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_MarginsOther", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other Abs. Margin.
+        /// </summary>
+        public static string Enum_TrackedMetric_MarginsOtherAbsolute {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_MarginsOtherAbsolute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Margin.
+        /// </summary>
+        public static string Enum_TrackedMetric_MarginsTotal {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_MarginsTotal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Abs. Margin.
+        /// </summary>
+        public static string Enum_TrackedMetric_MarginsTotalAbsolute {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_MarginsTotalAbsolute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cyclomatic Complexity.
+        /// </summary>
+        public static string Enum_TrackedMetric_NetworkCyclomaticComplexity {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_NetworkCyclomaticComplexity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duration (days).
+        /// </summary>
+        public static string Enum_TrackedMetric_NetworkDuration {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_NetworkDuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duration (months).
+        /// </summary>
+        public static string Enum_TrackedMetric_NetworkDurationManMonths {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_NetworkDurationManMonths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        public static string Enum_TrackedMetric_None {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity Risk.
+        /// </summary>
+        public static string Enum_TrackedMetric_RisksActivity {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_RisksActivity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity Risk (with Std Dev).
+        /// </summary>
+        public static string Enum_TrackedMetric_RisksActivityStdDevCorrection {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_RisksActivityStdDevCorrection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Criticality Risk.
+        /// </summary>
+        public static string Enum_TrackedMetric_RisksCriticality {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_RisksCriticality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fibonacci Risk.
+        /// </summary>
+        public static string Enum_TrackedMetric_RisksFibonacci {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_RisksFibonacci", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Geometric Activity Risk.
+        /// </summary>
+        public static string Enum_TrackedMetric_RisksGeometricActivity {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_RisksGeometricActivity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Geometric Criticality Risk.
+        /// </summary>
+        public static string Enum_TrackedMetric_RisksGeometricCriticality {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_RisksGeometricCriticality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Geometric Fibonacci Risk.
+        /// </summary>
+        public static string Enum_TrackedMetric_RisksGeometricFibonacci {
+            get {
+                return ResourceManager.GetString("Enum_TrackedMetric_RisksGeometricFibonacci", resourceCulture);
             }
         }
     }

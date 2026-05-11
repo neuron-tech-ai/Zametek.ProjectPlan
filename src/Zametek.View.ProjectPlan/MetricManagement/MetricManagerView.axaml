@@ -2,8 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:i="using:Avalonia.Xaml.Interactivity"
-	         xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
 			 xmlns:resources="using:Zametek.Resource.ProjectPlan"
 			 xmlns:local="using:Zametek.View.ProjectPlan"
 			 xmlns:vm="using:Zametek.ViewModel.ProjectPlan"
@@ -13,11 +11,28 @@
 	<UserControl.Resources>
 	</UserControl.Resources>
 
+	<UserControl.Styles>
+		<!-- Metric label: muted caption -->
+		<Style Selector="SelectableTextBlock.metric-label">
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Opacity" Value="0.65"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="HorizontalAlignment" Value="Right"/>
+		</Style>
+		<!-- Metric value: prominent -->
+		<Style Selector="SelectableTextBlock.metric-value">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="Margin" Value="8,0,0,0"/>
+		</Style>
+	</UserControl.Styles>
+
 	<ScrollViewer VerticalScrollBarVisibility="Auto"
 				  HorizontalScrollBarVisibility="Disabled">
-		<WrapPanel Margin="7"
+		<WrapPanel Margin="4"
 				   Orientation="Horizontal">
-			<Grid Margin="7">
+			<Grid Margin="8">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="135"/>
 					<ColumnDefinition Width="100"/>
@@ -36,7 +51,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="0"
 									 VerticalAlignment="Center"
 									 Margin="7,0,0,0"
-									 FontWeight="Bold"
+									 FontWeight="SemiBold"
 									 Text="{Binding Path=ActivityRisk, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="1"
@@ -46,7 +61,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="1"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=ActivityRiskWithStdDevCorrection, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="2"
@@ -56,7 +71,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="2"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=CriticalityRisk, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="3"
@@ -66,11 +81,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="3"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=FibonacciRisk, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 			</Grid>
 
-			<Grid Margin="7">
+			<Grid Margin="8">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="135"/>
 					<ColumnDefinition Width="100"/>
@@ -89,8 +104,8 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="0"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
-						             Text="{Binding Path=CyclomaticComplexity, Mode=OneWay, StringFormat=\{0:N0\}}"/>
+						             FontWeight="SemiBold"
+						             Text="{Binding Path=NetworkCyclomaticComplexity, Mode=OneWay, StringFormat=\{0:N0\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="1"
 					                 VerticalAlignment="Center"
@@ -99,7 +114,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="1"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=GeometricActivityRisk, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="2"
@@ -109,7 +124,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="2"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=GeometricCriticalityRisk, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="3"
@@ -119,11 +134,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="3"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=GeometricFibonacciRisk, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 			</Grid>
 
-			<Grid Margin="7">
+			<Grid Margin="8">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="135"/>
 					<ColumnDefinition Width="100"/>
@@ -142,7 +157,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="0"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=ActivityEffort, Mode=OneWay, StringFormat=\{0:N0\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="1"
@@ -152,8 +167,8 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="1"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
-						             Text="{Binding Path=DurationManMonths, Mode=OneWay, StringFormat=\{0:N1\}}"/>
+						             FontWeight="SemiBold"
+						             Text="{Binding Path=NetworkDurationManMonths, Mode=OneWay, StringFormat=\{0:N1\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="2"
 					                 VerticalAlignment="Center"
@@ -162,21 +177,21 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="2"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=ProjectFinish, Mode=OneWay}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="3"
 					                 VerticalAlignment="Center"
 					                 HorizontalAlignment="Right"
-								     Text="{x:Static resources:Labels.Label_Efficiency}"/>
+								     Text="{x:Static resources:Labels.Label_EffortEfficiency}"/>
 				<SelectableTextBlock Grid.Column="1" Grid.Row="3"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
-						             Text="{Binding Path=Efficiency, Mode=OneWay, StringFormat=\{0:P1\}}"/>
+						             FontWeight="SemiBold"
+						             Text="{Binding Path=EffortEfficiency, Mode=OneWay, StringFormat=\{0:P1\}}"/>
 			</Grid>
 
-			<Grid Margin="7">
+			<Grid Margin="8">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="135"/>
 					<ColumnDefinition Width="100"/>
@@ -195,7 +210,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="0"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=DirectEffort, Mode=OneWay, StringFormat=\{0:N0\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="1"
@@ -205,7 +220,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="1"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=IndirectEffort, Mode=OneWay, StringFormat=\{0:N0\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="2"
@@ -215,7 +230,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="2"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=OtherEffort, Mode=OneWay, StringFormat=\{0:N0\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="3"
@@ -225,11 +240,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="3"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=TotalEffort, Mode=OneWay, StringFormat=\{0:N0\}}"/>
 			</Grid>
 
-			<Grid Margin="7"
+			<Grid Margin="8"
 				  IsVisible="{Binding Path=!HideCost, Mode=OneWay}">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="135"/>
@@ -249,7 +264,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="0"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=DirectCost, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="1"
@@ -259,7 +274,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="1"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=IndirectCost, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="2"
@@ -269,7 +284,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="2"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=OtherCost, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="3"
@@ -279,11 +294,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="3"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=TotalCost, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 			</Grid>
 
-			<Grid Margin="7"
+			<Grid Margin="8"
 				  IsVisible="{Binding Path=!HideBilling, Mode=OneWay}">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="135"/>
@@ -303,7 +318,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="0"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=DirectBilling, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="1"
@@ -313,7 +328,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="1"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=IndirectBilling, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="2"
@@ -323,7 +338,7 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="2"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=OtherBilling, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 
 				<SelectableTextBlock Grid.Column="0" Grid.Row="3"
@@ -333,11 +348,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="3"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold"
+						             FontWeight="SemiBold"
 						             Text="{Binding Path=TotalBilling, Mode=OneWay, StringFormat=\{0:N2\}}"/>
 			</Grid>
 
-			<Grid Margin="7"
+			<Grid Margin="8"
 				  IsVisible="{Binding Path=!HideMargin, Mode=OneWay}">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="135"/>
@@ -357,11 +372,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="0"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold">
+						             FontWeight="SemiBold">
 					<SelectableTextBlock.Text>
-						<MultiBinding StringFormat="{}{0:N2} ({1:P1})">
+						<MultiBinding StringFormat="{}{0:N2}{1}">
 							<Binding Path="DirectMarginAbsolute" Mode="OneWay" />
-							<Binding Path="DirectMargin" Mode="OneWay" />
+							<Binding Path="DisplayDirectMargin" Mode="OneWay" />
 						</MultiBinding>
 					</SelectableTextBlock.Text>
 				</SelectableTextBlock>
@@ -373,11 +388,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="1"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold">
+						             FontWeight="SemiBold">
 					<SelectableTextBlock.Text>
-						<MultiBinding StringFormat="{}{0:N2} ({1:P1})">
+						<MultiBinding StringFormat="{}{0:N2}{1}">
 							<Binding Path="IndirectMarginAbsolute" Mode="OneWay" />
-							<Binding Path="IndirectMargin" Mode="OneWay" />
+							<Binding Path="DisplayIndirectMargin" Mode="OneWay" />
 						</MultiBinding>
 					</SelectableTextBlock.Text>
 				</SelectableTextBlock>
@@ -389,11 +404,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="2"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold">
+						             FontWeight="SemiBold">
 					<SelectableTextBlock.Text>
-						<MultiBinding StringFormat="{}{0:N2} ({1:P1})">
+						<MultiBinding StringFormat="{}{0:N2}{1}">
 							<Binding Path="OtherMarginAbsolute" Mode="OneWay" />
-							<Binding Path="OtherMargin" Mode="OneWay" />
+							<Binding Path="DisplayOtherMargin" Mode="OneWay" />
 						</MultiBinding>
 					</SelectableTextBlock.Text>
 				</SelectableTextBlock>
@@ -405,11 +420,11 @@
 				<SelectableTextBlock Grid.Column="1" Grid.Row="3"
 						             VerticalAlignment="Center"
 						             Margin="7,0,0,0"
-						             FontWeight="Bold">
+						             FontWeight="SemiBold">
 					<SelectableTextBlock.Text>
-						<MultiBinding StringFormat="{}{0:N2} ({1:P1})">
+						<MultiBinding StringFormat="{}{0:N2}{1}">
 							<Binding Path="TotalMarginAbsolute" Mode="OneWay" />
-							<Binding Path="TotalMargin" Mode="OneWay" />
+							<Binding Path="DisplayTotalMargin" Mode="OneWay" />
 						</MultiBinding>
 					</SelectableTextBlock.Text>
 				</SelectableTextBlock>

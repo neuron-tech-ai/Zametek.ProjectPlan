@@ -1,6 +1,10 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using Zametek.Common.ProjectPlan;
 using Zametek.Data.ProjectPlan;
 using Zametek.ViewModel.ProjectPlan;
 
@@ -11,17 +15,28 @@ namespace Zametek.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
+        private string m_DockLayout;
+        private readonly List<DataGridModel> m_DataGridLayouts;
 
         #endregion
 
         #region Ctors
 
-        public SettingService(string settingsFilename)
+        public SettingService(
+            string settingsFilename,
+            string dockLayoutFilename,
+            string dataGridLayoutFilename)
             : base(settingsFilename)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(settingsFilename);
-            m_Lock = new object();
+            ArgumentException.ThrowIfNullOrWhiteSpace(dockLayoutFilename);
+            ArgumentException.ThrowIfNullOrWhiteSpace(dataGridLayoutFilename);
+            DockLayoutFilename = dockLayoutFilename;
+            DataGridLayoutFilename = dataGridLayoutFilename;
+            m_Lock = new();
+            m_DockLayout = string.Empty;
+            m_DataGridLayouts = [];
             string? directory = Path.GetDirectoryName(SettingsFilename);
 
             if (string.IsNullOrWhiteSpace(directory))
@@ -30,21 +45,70 @@ namespace Zametek.ProjectPlan
             }
 
             Directory.CreateDirectory(directory);
+
+            if (File.Exists(DockLayoutFilename))
+            {
+                using StreamReader reader = File.OpenText(DockLayoutFilename);
+                string content = reader.ReadToEnd();
+                m_DockLayout = content;
+            }
+
+            if (File.Exists(DataGridLayoutFilename))
+            {
+                using StreamReader reader = File.OpenText(DataGridLayoutFilename);
+                string content = reader.ReadToEnd();
+
+                try
+                {
+                    List<DataGridModel>? dataGridModels = JsonConvert.DeserializeObject<List<DataGridModel>>(content);
+                    if (dataGridModels is not null)
+                    {
+                        m_DataGridLayouts.AddRange(dataGridModels);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // The data grid layout file is corrupt or unreadable — reset to defaults.
+                    Debug.WriteLine($"[SettingService] Failed to deserialize data grid layout, resetting: {ex.Message}");
+                    m_DataGridLayouts.Clear();
+                }
+            }
         }
 
         #endregion
 
+        private void SaveDockLayout()
+        {
+            lock (m_Lock)
+            {
+                using StreamWriter writer = File.CreateText(DockLayoutFilename);
+                writer.WriteLine(DockLayout);
+            }
+        }
+
+        private void SaveDataGridLayout()
+        {
+            lock (m_Lock)
+            {
+                using StreamWriter writer = File.CreateText(DataGridLayoutFilename);
+                writer.WriteLine(JsonConvert.SerializeObject(m_DataGridLayouts, Formatting.Indented));
+            }
+        }
+
         private void SaveSettings()
         {
-            using StreamWriter writer = File.CreateText(SettingsFilename);
-            var jsonSerializer = JsonSerializer.Create(
-                new JsonSerializerSettings
-                {
-                    Formatting = Formatting.Indented,
-                    NullValueHandling = NullValueHandling.Ignore,
-                });
-            Data.ProjectPlan.v0_4_4.AppSettingsModel output = Converter.Format(m_AppSettingsModel);
-            jsonSerializer.Serialize(writer, output, output.GetType());
+            lock (m_Lock)
+            {
+                using StreamWriter writer = File.CreateText(SettingsFilename);
+                var jsonSerializer = JsonSerializer.Create(
+                    new JsonSerializerSettings
+                    {
+                        Formatting = Formatting.Indented,
+                        NullValueHandling = NullValueHandling.Ignore,
+                    });
+                Data.ProjectPlan.v0_6_0.AppSettingsModel output = Converter.Format(m_AppSettingsModel);
+                jsonSerializer.Serialize(writer, output, output.GetType());
+            }
         }
 
         #region ISettingService Members
@@ -53,7 +117,7 @@ namespace Zametek.ProjectPlan
         {
             get
             {
-                string directory = m_AppSettingsModel.ProjectPlanDirectory;
+                string directory = m_AppSettingsModel.ProjectDirectory;
                 return string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory)
                     ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
                     : directory;
@@ -62,9 +126,43 @@ namespace Zametek.ProjectPlan
             {
                 lock (m_Lock)
                 {
-                    m_AppSettingsModel = m_AppSettingsModel with { ProjectPlanDirectory = value };
+                    m_AppSettingsModel = m_AppSettingsModel with { ProjectDirectory = value };
                     SaveSettings();
                 }
+            }
+        }
+
+        public override string DockLayout
+        {
+            get
+            {
+                return m_DockLayout;
+            }
+            set
+            {
+                lock (m_Lock)
+                {
+                    m_DockLayout = value;
+                    SaveDockLayout();
+                }
+            }
+        }
+
+        public override IList<DataGridModel> GetDataGridLayout()
+        {
+            lock (m_Lock)
+            {
+                return [.. m_DataGridLayouts];
+            }
+        }
+
+        public override void SetDataGridLayout(IList<DataGridModel> models)
+        {
+            lock (m_Lock)
+            {
+                m_DataGridLayouts.Clear();
+                m_DataGridLayouts.AddRange(models);
+                SaveDataGridLayout();
             }
         }
 
@@ -100,17 +198,17 @@ namespace Zametek.ProjectPlan
             }
         }
 
-        public override bool DefaultUseBusinessDays
+        public override NonWorkingDayMode DefaultNonWorkingDayMode
         {
             get
             {
-                return m_AppSettingsModel.DefaultUseBusinessDays;
+                return m_AppSettingsModel.DefaultNonWorkingDayMode;
             }
             set
             {
                 lock (m_Lock)
                 {
-                    m_AppSettingsModel = m_AppSettingsModel with { DefaultUseBusinessDays = value };
+                    m_AppSettingsModel = m_AppSettingsModel with { DefaultNonWorkingDayMode = value };
                     SaveSettings();
                 }
             }

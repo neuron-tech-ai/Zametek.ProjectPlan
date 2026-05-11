@@ -120,11 +120,14 @@
   <data name="Title_ActivitiesView" xml:space="preserve">
     <value>Activities</value>
   </data>
-  <data name="Title_ArrowGraphSettingsView" xml:space="preserve">
-    <value>Arrow Graph Settings</value>
+  <data name="Title_GraphSettingsView" xml:space="preserve">
+    <value>Graph Settings</value>
   </data>
   <data name="Title_ArrowGraphView" xml:space="preserve">
     <value>Arrow Graph</value>
+  </data>
+  <data name="Title_VertexGraphView" xml:space="preserve">
+    <value>Vertex Graph</value>
   </data>
   <data name="Title_EarnedValueChartView" xml:space="preserve">
     <value>Earned-Value Chart</value>
@@ -134,6 +137,9 @@
   </data>
   <data name="Title_EditResources" xml:space="preserve">
     <value>Edit Resources</value>
+  </data>
+  <data name="Title_EditWorkStreams" xml:space="preserve">
+    <value>Edit Work Streams</value>
   </data>
   <data name="Title_Error" xml:space="preserve">
     <value>Error</value>
@@ -153,14 +159,20 @@
   <data name="Title_ResourceChartView" xml:space="preserve">
     <value>Resource Chart</value>
   </data>
+  <data name="Title_ScenarioChartView" xml:space="preserve">
+    <value>Scenario Chart</value>
+  </data>
   <data name="Title_ResourceSettingsView" xml:space="preserve">
     <value>Resource Settings</value>
   </data>
   <data name="Title_TrackingView" xml:space="preserve">
     <value>Tracking</value>
   </data>
-  <data name="Title_UnsavedChanges" xml:space="preserve">
+  <data name="Title_ProjectUnsavedChanges" xml:space="preserve">
     <value>Project has unsaved changes</value>
+  </data>
+  <data name="Title_ScenarioUnsavedChanges" xml:space="preserve">
+    <value>Scenario has unsaved changes</value>
   </data>
   <data name="Title_UntitledProject" xml:space="preserve">
     <value>Untitled</value>
@@ -170,5 +182,17 @@
   </data>
   <data name="Title_WorkStreamSettingsView" xml:space="preserve">
     <value>Work Stream Settings</value>
+  </data>
+  <data name="Title_ProjectScenarios" xml:space="preserve">
+    <value>Scenarios</value>
+  </data>
+  <data name="Title_DeleteNodes" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Title_HolidaySettingsView" xml:space="preserve">
+    <value>Non-Working Day Settings</value>
+  </data>
+  <data name="Title_EditCustomCalendar" xml:space="preserve">
+    <value>Edit Custom Calendar</value>
   </data>
 </root>

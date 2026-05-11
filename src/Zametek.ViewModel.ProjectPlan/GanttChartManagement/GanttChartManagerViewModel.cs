@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Threading;
 using ReactiveUI;
 using ScottPlot;
 using ScottPlot.Avalonia;
@@ -21,7 +22,7 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
 
         private static readonly IList<IFileFilter> s_ExportFileFilters =
             [
@@ -79,6 +80,7 @@ namespace Zametek.ViewModel.ProjectPlan
         private readonly ISettingService m_SettingService;
         private readonly IDialogService m_DialogService;
         private readonly IDateTimeCalculator m_DateTimeCalculator;
+        private readonly IScottPlotImageExporter m_ScottPlotImageExporter;
 
         private readonly IDisposable? m_BuildGanttChartPlotModelSub;
 
@@ -87,12 +89,15 @@ namespace Zametek.ViewModel.ProjectPlan
         private const double c_BarSize = 0.5;
         private const double c_TrackerCorrection = c_BarSize / 2.0;
 
-        private const double c_ArrowHeadDelta = 0.03;
+        private const double c_ArrowHeadDelta = 0.5;
         private const float c_ArrowHeadWidth = 6.0f;
         private const float c_ArrowHeadLength = 14.0f;
         private const float c_ArrowHeadHeight = 8.0f;
 
         private const float c_VerticalLineWidth = 2.0f;
+        private const float c_ConnectionArrowLineWidth = 1.0f;
+        private const float c_ConnectionArrowHeadWidth = 5.0f;
+        private const float c_ConnectionArrowHeadLength = 10.0f;
 
         #endregion
 
@@ -102,20 +107,28 @@ namespace Zametek.ViewModel.ProjectPlan
             ICoreViewModel coreViewModel,
             ISettingService settingService,
             IDialogService dialogService,
-            IDateTimeCalculator dateTimeCalculator)
+            IDateTimeCalculator dateTimeCalculator,
+            IScottPlotImageExporter scottPlotImageExporter)
         {
             ArgumentNullException.ThrowIfNull(coreViewModel);
             ArgumentNullException.ThrowIfNull(settingService);
             ArgumentNullException.ThrowIfNull(dialogService);
             ArgumentNullException.ThrowIfNull(dateTimeCalculator);
-            m_Lock = new object();
+            ArgumentNullException.ThrowIfNull(scottPlotImageExporter);
+            m_Lock = new();
             m_CoreViewModel = coreViewModel;
             m_SettingService = settingService;
             m_DialogService = dialogService;
             m_DateTimeCalculator = dateTimeCalculator;
+            m_ScottPlotImageExporter = scottPlotImageExporter;
 
-            ActivitySelector = new ActivitySelectorViewModel(m_CoreViewModel, []);
+            ActivitySelector = new ActivitySelectorViewModel(m_CoreViewModel);
+
             m_GanttChartPlotModel = new AvaPlot();
+
+            ResetGanttChartCommand = ReactiveCommand.CreateFromTask(ResetGanttChartAsync);
+            ChangeGroupByModeCommand = ReactiveCommand.CreateFromTask<GroupByMode>(ChangeGroupByModeAsync);
+            ChangeAnnotationStyleCommand = ReactiveCommand.CreateFromTask<AnnotationStyle>(ChangeAnnotationStyleAsync);
 
             {
                 ReactiveCommand<Unit, Unit> saveGanttChartImageFileCommand = ReactiveCommand.CreateFromTask(SaveGanttChartImageFileAsync);
@@ -190,7 +203,7 @@ namespace Zametek.ViewModel.ProjectPlan
                     rcm => rcm.ShowToday,
                     rcm => rcm.ShowMilestones,
                     rcm => rcm.ShowSlack,
-                    (a, b, c, d, e, f, g, h) =>
+                    (x, _, _, _, _, _, _, _) =>
                     {
                         if (m_BoolAccumulator is null
                             || m_BoolAccumulator.Value == BoolToggle.Up)
@@ -201,21 +214,25 @@ namespace Zametek.ViewModel.ProjectPlan
                     })
                 .ToProperty(this, rcm => rcm.BoolAccumulator);
 
+            this.WhenAnyValue(rcm => rcm.ShowAllConnections)
+                .Subscribe(_ => BuildGanttChartPlotModel());
+
             m_BuildGanttChartPlotModelSub = this
                 .WhenAnyValue(
                     rcm => rcm.m_CoreViewModel.ResourceSeriesSet,
                     rcm => rcm.m_CoreViewModel.ResourceSettings,
-                    rcm => rcm.m_CoreViewModel.ArrowGraphSettings,
+                    rcm => rcm.m_CoreViewModel.GraphSettings,
                     rcm => rcm.m_CoreViewModel.ProjectStart,
-                    rcm => rcm.m_CoreViewModel.Duration,
+                    rcm => rcm.m_CoreViewModel.ProjectFinish,
+                    rcm => rcm.m_CoreViewModel.Metrics,
                     rcm => rcm.m_CoreViewModel.Today,
                     rcm => rcm.m_CoreViewModel.BaseTheme,
                     rcm => rcm.GroupByMode,
                     rcm => rcm.AnnotationStyle,
                     rcm => rcm.BoolAccumulator,
                     rcm => rcm.ActivitySelector.TargetActivitiesString,
-                    (a, b, c, d, e, f, g, h, i, j, k) => (a, b, c, d, e, f, g, h, i, j, k)) // Do this as a workaround because WhenAnyValue cannot handle this many individual inputs.
-                .ObserveOn(RxApp.MainThreadScheduler)
+                    (x, _, _, _, _, _, _, _, _, _, _, _) => x) // Do this as a workaround because WhenAnyValue cannot handle this many individual inputs.
+                .ObserveOn(RxApp.TaskpoolScheduler)
                 .Subscribe(async _ => await BuildGanttChartPlotModelAsync());
 
             Id = Resource.ProjectPlan.Titles.Title_GanttChartView;
@@ -238,7 +255,10 @@ namespace Zametek.ViewModel.ProjectPlan
             }
             private set
             {
-                lock (m_Lock) this.RaiseAndSetIfChanged(ref m_GanttChartPlotModel, value);
+                lock (m_Lock)
+                {
+                    this.RaiseAndSetIfChanged(ref m_GanttChartPlotModel, value);
+                }
             }
         }
 
@@ -250,6 +270,19 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public object? ImageBounds { get; set; }
 
+        private bool m_ShowAllConnections;
+        public bool ShowAllConnections
+        {
+            get => m_ShowAllConnections;
+            set
+            {
+                lock (m_Lock)
+                {
+                    this.RaiseAndSetIfChanged(ref m_ShowAllConnections, value);
+                }
+            }
+        }
+
         #endregion
 
         #region Private Methods
@@ -258,10 +291,13 @@ namespace Zametek.ViewModel.ProjectPlan
         {
             try
             {
-                lock (m_Lock)
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    BuildGanttChartPlotModel();
-                }
+                    lock (m_Lock)
+                    {
+                        BuildGanttChartPlotModel();
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -276,9 +312,10 @@ namespace Zametek.ViewModel.ProjectPlan
             IDateTimeCalculator dateTimeCalculator,
             ResourceSeriesSetModel resourceSeriesSet,
             ResourceSettingsModel resourceSettingsSettings,
-            ArrowGraphSettingsModel arrowGraphSettings,
+            GraphSettingsModel graphSettings,
             WorkStreamSettingsModel workStreamSettings,
             DateTimeOffset projectStart,
+            string projectFinish,
             int? duration,
             DateTimeOffset today,
             bool showToday,
@@ -292,12 +329,13 @@ namespace Zametek.ViewModel.ProjectPlan
             bool showProjectFinish,
             bool showTracking,
             IEnumerable<int> highlightActivityConnections,
+            bool showAllConnections,
             BaseTheme baseTheme)
         {
             ArgumentNullException.ThrowIfNull(dateTimeCalculator);
             ArgumentNullException.ThrowIfNull(resourceSeriesSet);
             ArgumentNullException.ThrowIfNull(resourceSettingsSettings);
-            ArgumentNullException.ThrowIfNull(arrowGraphSettings);
+            ArgumentNullException.ThrowIfNull(graphSettings);
             ArgumentNullException.ThrowIfNull(workStreamSettings);
             ArgumentNullException.ThrowIfNull(graphCompilation);
 
@@ -331,12 +369,13 @@ namespace Zametek.ViewModel.ProjectPlan
             double minXValue = xAxis.Min;
             double maxXValue = xAxis.Max;
 
-            var colorFormatLookup = new SlackColorFormatLookup(arrowGraphSettings.ActivitySeverities);
+            var colorFormatLookup = new SlackColorFormatLookup(graphSettings.ActivitySeverities);
             string startEndFormat = showDates ? DateTimeCalculator.DateFormat : "0";
 
             var bars = new List<Bar>();
             var highlights = new List<IPlottable>();
             var labels = new List<string>();
+            var activityBarPositions = new Dictionary<int, (double Start, double End)>();
 
             switch (groupByMode)
             {
@@ -377,7 +416,8 @@ namespace Zametek.ViewModel.ProjectPlan
                                 labels,
                                 highlights,
                                 activity,
-                                highlightActivityConnections);
+                                highlightActivityConnections,
+                                activityBarPositions);
 
                             switch (annotationStyle)
                             {
@@ -478,10 +518,11 @@ namespace Zametek.ViewModel.ProjectPlan
                                 .LastOrDefault()?.FinishTime ?? 0)
                             .ToList();
 
+                        Dictionary<int, IDependentActivity> activityLookup = graphCompilation.DependentActivities.ToDictionary(x => x.Id);
+
                         foreach ((string resourceName, ColorFormatModel colorFormat, int displayOrder, IList<ScheduledActivityModel> scheduledActivities) in orderedScheduledResourceActivitiesSet)
                         {
                             IEnumerable<ScheduledActivityModel> orderedScheduledActivities = scheduledActivities;
-                            Dictionary<int, IDependentActivity> activityLookup = graphCompilation.DependentActivities.ToDictionary(x => x.Id);
 
                             ScheduledActivityModel? firstItem = orderedScheduledActivities.OrderBy(x => x.StartTime).FirstOrDefault();
                             ScheduledActivityModel? lastItem = orderedScheduledActivities.OrderByDescending(x => x.FinishTime).FirstOrDefault();
@@ -521,7 +562,8 @@ namespace Zametek.ViewModel.ProjectPlan
                                         labels,
                                         highlights,
                                         activity,
-                                        highlightActivityConnections);
+                                        highlightActivityConnections,
+                                        activityBarPositions);
                                 }
                             }
 
@@ -600,19 +642,18 @@ namespace Zametek.ViewModel.ProjectPlan
 
                         // Include a catch-all work stream as default.
 
-                        workStreamLookup.TryAdd(
-                            default,
+                        workStreamLookup[default] =
                             new()
                             {
                                 Id = default,
                                 Name = Resource.ProjectPlan.Labels.Label_DefaultWorkStream,
                                 ColorFormat = ColorHelper.Black(),
                                 DisplayOrder = -1
-                            });
+                            };
 
                         foreach (WorkStreamModel workStream in workStreamSettings.WorkStreams)
                         {
-                            workStreamLookup.TryAdd(workStream.Id, workStream);
+                            workStreamLookup[workStream.Id] = workStream;
                         }
 
                         // Go through all the activities (in reverse display order).
@@ -684,10 +725,11 @@ namespace Zametek.ViewModel.ProjectPlan
                             .Select(x => (x.Key, x.Value))
                             .ToList();
 
+                        Dictionary<int, IDependentActivity> workStreamActivityLookup = graphCompilation.DependentActivities.ToDictionary(x => x.Id);
+
                         foreach ((int workStreamId, IList<ScheduledActivityModel> scheduledActivities) in orderedActivitiesByWorkStream)
                         {
                             IEnumerable<ScheduledActivityModel> orderedScheduledActivities = scheduledActivities;
-                            Dictionary<int, IDependentActivity> activityLookup = graphCompilation.DependentActivities.ToDictionary(x => x.Id);
 
                             ScheduledActivityModel? firstItem = orderedScheduledActivities.OrderBy(x => x.StartTime).FirstOrDefault();
                             ScheduledActivityModel? lastItem = orderedScheduledActivities.OrderByDescending(x => x.FinishTime).FirstOrDefault();
@@ -700,7 +742,7 @@ namespace Zametek.ViewModel.ProjectPlan
                                 // Extend the annotation to the latest finish time of the last activity, if it has one.
                                 if (lastItem is not null)
                                 {
-                                    if (activityLookup.TryGetValue(lastItem.Id, out IDependentActivity? activity)
+                                    if (workStreamActivityLookup.TryGetValue(lastItem.Id, out IDependentActivity? activity)
                                         && activity.LatestFinishTime.HasValue
                                         && workStreamFinishTime < activity.LatestFinishTime)
                                     {
@@ -715,7 +757,7 @@ namespace Zametek.ViewModel.ProjectPlan
 
                             foreach (ScheduledActivityModel scheduledActivity in orderedScheduledActivities)
                             {
-                                if (activityLookup.TryGetValue(scheduledActivity.Id, out IDependentActivity? activity))
+                                if (workStreamActivityLookup.TryGetValue(scheduledActivity.Id, out IDependentActivity? activity))
                                 {
                                     AddBarItemToSeries(
                                         dateTimeCalculator,
@@ -727,7 +769,8 @@ namespace Zametek.ViewModel.ProjectPlan
                                         labels,
                                         highlights,
                                         activity,
-                                        highlightActivityConnections);
+                                        highlightActivityConnections,
+                                        activityBarPositions);
                                 }
                             }
 
@@ -808,21 +851,9 @@ namespace Zametek.ViewModel.ProjectPlan
 
             if (showProjectFinish)
             {
-                var projectFinish = new StringBuilder(Resource.ProjectPlan.Labels.Label_ProjectFinish);
-                projectFinish.Append(' ');
-
-                if (showDates)
-                {
-                    DateTimeOffset startAndFinish = dateTimeCalculator.AddDays(projectStart, finishTime);
-                    projectFinish.Append(
-                        dateTimeCalculator
-                            .DisplayFinishDate(startAndFinish, startAndFinish, 1)
-                            .ToString(DateTimeCalculator.DateFormat));
-                }
-                else
-                {
-                    projectFinish.Append(finishTime);
-                }
+                var projectFinishDisplay = new StringBuilder(Resource.ProjectPlan.Labels.Label_ProjectFinish);
+                projectFinishDisplay.Append(' ');
+                projectFinishDisplay.Append(projectFinish);
 
                 double finishTimeX = ChartHelper.CalculateChartFinishTimeXValue(
                     finishTime,
@@ -831,21 +862,37 @@ namespace Zametek.ViewModel.ProjectPlan
                     dateTimeCalculator);
                 double finishTimeY = labels.Count;
 
-                Annotation annotation = plotModel.Plot.Add.Annotation(projectFinish.ToString(), Alignment.UpperRight);
+                Annotation annotation = plotModel.Plot.Add.Annotation(projectFinishDisplay.ToString(), Alignment.UpperRight);
                 annotation.LabelBackgroundColor = Colors.Transparent;
                 annotation.LabelBorderColor = Colors.Transparent;
                 annotation.LabelShadowColor = Colors.Transparent;
             }
 
             // Enumerate the bar series and set the position of each bar.
+            // Also build a position lookup for connection arrow drawing.
+            var activityBarYPosition = new Dictionary<int, double>();
             for (int i = 0; i < bars.Count; i++)
             {
                 var bar = bars[i];
                 bar.Position = i + 1;
+                if (bar is AnnotatedBar ab && ab.ActivityId != 0)
+                {
+                    activityBarYPosition[ab.ActivityId] = i + 1;
+                }
             }
 
             BarPlot barPlot = plotModel.Plot.Add.Bars(bars);
             barPlot.Horizontal = true;
+
+            // Draw "show all connections" arrows between dependent activity bars.
+            if (showAllConnections)
+            {
+                AddAllConnectionArrows(
+                    plotModel,
+                    graphCompilation,
+                    activityBarPositions,
+                    activityBarYPosition);
+            }
 
             // Highlights (above the bar plot).
             plotModel.Plot.PlottableList.AddRange(highlights);
@@ -1036,7 +1083,8 @@ namespace Zametek.ViewModel.ProjectPlan
             List<string> labels,
             List<IPlottable> highlights,
             IDependentActivity activity,
-            IEnumerable<int> highlightActivityConnections)
+            IEnumerable<int> highlightActivityConnections,
+            Dictionary<int, (double Start, double End)>? activityBarPositions = null)
         {
             if (activity.EarliestStartTime.HasValue
                 && activity.EarliestFinishTime.HasValue
@@ -1111,10 +1159,18 @@ namespace Zametek.ViewModel.ProjectPlan
                     Value = end,
                     FillColor = backgroundColor,
                     Size = c_BarSize,
+                    ActivityId = activity.Id,
+                    ActivityStartTime = activity.EarliestStartTime.GetValueOrDefault(),
+                    ActivityDuration = activity.Duration,
                 };
 
                 series.Add(item);
                 labels.Add(label);
+
+                if (activityBarPositions is not null)
+                {
+                    activityBarPositions[activity.Id] = (start, end);
+                }
 
                 int labelCount = labels.Count;
 
@@ -1148,6 +1204,74 @@ namespace Zametek.ViewModel.ProjectPlan
                     {
                         highlights.Add(rectangle);
                     }
+                }
+            }
+        }
+
+        private static void AddAllConnectionArrows(
+            AvaPlot plotModel,
+            IGraphCompilation<int, int, int, IDependentActivity> graphCompilation,
+            Dictionary<int, (double Start, double End)> activityBarPositions,
+            Dictionary<int, double> activityBarYPosition)
+        {
+            // Draw elbow connectors (3 segments) from predecessor bar end to successor bar start.
+            // Routing: right from predecessor end → vertical to successor row → to successor start.
+            Color connectionColor = Colors.Grey.WithAlpha(180);
+            const double c_ElbowBuffer = 0.5; // time units to extend right before turning
+
+            foreach (IDependentActivity activity in graphCompilation.DependentActivities)
+            {
+                // activity.Successors = list of successor IDs
+                foreach (int successorId in activity.Successors)
+                {
+                    if (!activityBarPositions.TryGetValue(activity.Id, out (double Start, double End) fromPos))
+                    {
+                        continue;
+                    }
+                    if (!activityBarPositions.TryGetValue(successorId, out (double Start, double End) toPos))
+                    {
+                        continue;
+                    }
+                    if (!activityBarYPosition.TryGetValue(activity.Id, out double fromY))
+                    {
+                        continue;
+                    }
+                    if (!activityBarYPosition.TryGetValue(successorId, out double toY))
+                    {
+                        continue;
+                    }
+
+                    // viaX: the x-coordinate of the elbow turn.
+                    // Always buffer right of the predecessor end so the connector exits cleanly.
+                    double viaX = fromPos.End + c_ElbowBuffer;
+
+                    // Segment 1: horizontal right from predecessor bar end to the elbow.
+                    ScottPlot.Plottables.LinePlot seg1 = plotModel.Plot.Add.Line(fromPos.End, fromY, viaX, fromY);
+                    seg1.Color = connectionColor;
+                    seg1.LineWidth = c_ConnectionArrowLineWidth;
+
+                    // Segment 2: vertical from predecessor row to successor row (only if rows differ).
+                    if (Math.Abs(fromY - toY) > 0.01)
+                    {
+                        ScottPlot.Plottables.LinePlot seg2 = plotModel.Plot.Add.Line(viaX, fromY, viaX, toY);
+                        seg2.Color = connectionColor;
+                        seg2.LineWidth = c_ConnectionArrowLineWidth;
+                    }
+
+                    // Segment 3: horizontal arrow from elbow to successor bar start, arrowhead at start.
+                    // Arrow.Base = elbow point, Arrow.Tip = successor start (arrowhead lands here).
+                    var arrow = new Arrow
+                    {
+                        Base = new Coordinates(viaX, toY),
+                        Tip = new Coordinates(toPos.Start, toY),
+                        ArrowLineColor = connectionColor,
+                        ArrowFillColor = connectionColor,
+                        ArrowShape = ArrowShape.Arrowhead.GetShape(),
+                        ArrowheadWidth = c_ConnectionArrowHeadWidth,
+                        ArrowheadLength = c_ConnectionArrowHeadLength,
+                        ArrowLineWidth = c_ConnectionArrowLineWidth,
+                    };
+                    plotModel.Plot.PlottableList.Add(arrow);
                 }
             }
         }
@@ -1342,6 +1466,51 @@ namespace Zametek.ViewModel.ProjectPlan
             return yAxis;
         }
 
+        private async Task ResetGanttChartAsync()
+        {
+            try
+            {
+                GanttChartPlotModel.Plot.Axes.AutoScale();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        private async Task ChangeGroupByModeAsync(GroupByMode groupByMode)
+        {
+            try
+            {
+                GroupByMode = groupByMode;
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        private async Task ChangeAnnotationStyleAsync(AnnotationStyle annotationStyle)
+        {
+            try
+            {
+                AnnotationStyle = annotationStyle;
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
         private async Task SaveGanttChartImageFileAsync()
         {
             try
@@ -1465,7 +1634,13 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public IActivitySelectorViewModel ActivitySelector { get; }
 
+        public ICommand ResetGanttChartCommand { get; }
+
         public ICommand SaveGanttChartImageFileCommand { get; }
+
+        public ICommand ChangeGroupByModeCommand { get; }
+
+        public ICommand ChangeAnnotationStyleCommand { get; }
 
         public async Task SaveGanttChartImageFileAsync(
             string? filename,
@@ -1483,7 +1658,6 @@ namespace Zametek.ViewModel.ProjectPlan
             {
                 try
                 {
-                    string fileExtension = Path.GetExtension(filename);
                     int calculatedHeight = 0;
 
                     if (GanttChartPlotModel.Plot.GetPlottables<BarPlot>().FirstOrDefault() is BarPlot barPlot)
@@ -1497,36 +1671,7 @@ namespace Zametek.ViewModel.ProjectPlan
                         calculatedHeight = height;
                     }
 
-                    fileExtension.ValueSwitchOn()
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImageJpegFileExtension}", _ =>
-                        {
-                            GanttChartPlotModel.Plot.Save(
-                                filename, width, calculatedHeight, ImageFormats.FromFilename(filename), 100);
-                        })
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImagePngFileExtension}", _ =>
-                        {
-                            GanttChartPlotModel.Plot.Save(
-                                filename, width, calculatedHeight, ImageFormats.FromFilename(filename), 100);
-                        })
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImageBmpFileExtension}", _ =>
-                        {
-                            GanttChartPlotModel.Plot.Save(
-                                filename, width, calculatedHeight, ImageFormats.FromFilename(filename), 100);
-                        })
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImageWebpFileExtension}", _ =>
-                        {
-                            GanttChartPlotModel.Plot.Save(
-                                filename, width, calculatedHeight, ImageFormats.FromFilename(filename), 100);
-                        })
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImageSvgFileExtension}", _ =>
-                        {
-                            GanttChartPlotModel.Plot.Save(
-                                filename, width, calculatedHeight, ImageFormats.FromFilename(filename), 100);
-                        })
-                        //.Case($".{Resource.ProjectPlan.Filters.Filter_PdfFileExtension}", _ =>
-                        //{
-                        //})
-                        .Default(_ => throw new ArgumentOutOfRangeException(nameof(filename), @$"{Resource.ProjectPlan.Messages.Message_UnableToSaveFile} {filename}"));
+                    await m_ScottPlotImageExporter.SavePlotImageAsync(GanttChartPlotModel.Plot, filename, width, calculatedHeight);
                 }
                 catch (Exception ex)
                 {
@@ -1548,10 +1693,11 @@ namespace Zametek.ViewModel.ProjectPlan
                     m_DateTimeCalculator,
                     m_CoreViewModel.ResourceSeriesSet,
                     m_CoreViewModel.ResourceSettings,
-                    m_CoreViewModel.ArrowGraphSettings,
+                    m_CoreViewModel.GraphSettings,
                     m_CoreViewModel.WorkStreamSettings,
                     m_CoreViewModel.ProjectStart,
-                    m_CoreViewModel.Duration,
+                    m_CoreViewModel.ProjectFinish,
+                    m_CoreViewModel.Metrics?.Network?.Duration,
                     m_CoreViewModel.Today,
                     ShowToday,
                     ShowMilestones,
@@ -1564,6 +1710,7 @@ namespace Zametek.ViewModel.ProjectPlan
                     ShowProjectFinish,
                     ShowTracking,
                     ActivitySelector.SelectedActivityIds,
+                    ShowAllConnections,
                     m_CoreViewModel.BaseTheme);
             }
 
@@ -1572,17 +1719,65 @@ namespace Zametek.ViewModel.ProjectPlan
             // Clear existing menu items.
             plotModel.Menu?.Clear();
 
-            // Add menu items with custom actions.
-            plotModel.Menu?.Add(Resource.ProjectPlan.Menus.Menu_SaveAs, (plot) =>
-            {
-                SaveGanttChartImageFileCommand.Execute(null);
-            });
-            plotModel.Menu?.Add(Resource.ProjectPlan.Menus.Menu_Reset, (plot) =>
-            {
-                plot.Axes.AutoScale();
-            });
+            //// Add menu items with custom actions.
+            //plotModel.Menu?.Add(Resource.ProjectPlan.Menus.Menu_SaveAs, (plot) =>
+            //{
+            //    SaveGanttChartImageFileCommand.Execute(null);
+            //});
+            //plotModel.Menu?.Add(Resource.ProjectPlan.Menus.Menu_Reset, (plot) =>
+            //{
+            //    plot.Axes.AutoScale();
+            //});
 
             GanttChartPlotModel = plotModel;
+        }
+
+        public void SetActivityDuration(int activityId, int newDuration)
+        {
+            if (newDuration < 1)
+            {
+                newDuration = 1;
+            }
+
+            IManagedActivityViewModel? activity = m_CoreViewModel.RawActivities
+                .FirstOrDefault(a => a.Id == activityId);
+
+            if (activity is null)
+            {
+                return;
+            }
+
+            activity.Duration = newDuration;
+            m_CoreViewModel.IsProjectScenarioUpdated = true;
+            m_CoreViewModel.RunAutoCompile();
+        }
+
+        public void AddActivityDependency(int fromActivityId, int toActivityId)
+        {
+            if (fromActivityId == toActivityId)
+            {
+                return;
+            }
+
+            IManagedActivityViewModel? fromActivity = m_CoreViewModel.RawActivities
+                .FirstOrDefault(a => a.Id == fromActivityId);
+
+            if (fromActivity is null)
+            {
+                return;
+            }
+
+            // Parse existing dependencies and add the new one if not already present.
+            HashSet<int> deps = [.. fromActivity.Dependencies];
+            if (deps.Contains(toActivityId))
+            {
+                return;
+            }
+
+            deps.Add(toActivityId);
+            fromActivity.DependenciesString = string.Join(",", deps.OrderBy(x => x));
+            m_CoreViewModel.IsProjectScenarioUpdated = true;
+            m_CoreViewModel.RunAutoCompile();
         }
 
         #endregion
@@ -1609,7 +1804,6 @@ namespace Zametek.ViewModel.ProjectPlan
 
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects).
                 KillSubscriptions();
                 m_IsBusy?.Dispose();
                 m_HasStaleOutputs?.Dispose();
@@ -1627,9 +1821,6 @@ namespace Zametek.ViewModel.ProjectPlan
                 m_BoolAccumulator?.Dispose();
                 ActivitySelector?.Dispose();
             }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
 
             m_Disposed = true;
         }

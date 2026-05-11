@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using MsBox.Avalonia;
@@ -21,11 +20,11 @@ namespace Zametek.View.ProjectPlan
         #region Fields
 
         private Window? m_Parent;
-        private readonly IMapper m_Mapper;
+        private readonly ProjectPlanMapper m_Mapper;
 
         #endregion
 
-        public DialogService(IMapper mapper)
+        public DialogService(ProjectPlanMapper mapper)
         {
             ArgumentNullException.ThrowIfNull(mapper);
             m_Mapper = mapper;
@@ -33,36 +32,46 @@ namespace Zametek.View.ProjectPlan
 
         #region Private Methods
 
+        /// <summary>
+        /// Builds a FilePickerFileType from a FileFilter, ensuring AppleUniformTypeIdentifiers
+        /// are set so macOS doesn't grey out files with unregistered extensions (e.g. .zpp).
+        /// </summary>
+        private static FilePickerFileType BuildFilePickerFileType(FileFilter filter)
+        {
+            // Extract bare extensions from patterns like "*.zpp" → "zpp"
+            var extensions = filter.Patterns
+                .Where(p => p.StartsWith("*.") && p.Length > 2)
+                .Select(p => p[2..])
+                .ToList();
+
+            // On macOS, Avalonia maps AppleUniformTypeIdentifiers to NSOpenPanel allowedContentTypes.
+            // Without this, files with unrecognised extensions are greyed out.
+            // "public.data" is a catch-all UTI that allows any binary data file to be selected.
+            // "public.item" is even broader (includes directories), so we prefer public.data.
+            string[] appleUtis = extensions.Count > 0
+                ? ["public.data"]
+                : ["public.item"];
+
+            return new FilePickerFileType(filter.Name)
+            {
+                Patterns = filter.Patterns,
+                AppleUniformTypeIdentifiers = appleUtis,
+                MimeTypes = ["application/octet-stream"]
+            };
+        }
+
         private async Task<ButtonResult> ShowMessageBoxAsync(MessageBoxStandardParams standardParams)
         {
             return await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                standardParams.WindowIcon = m_Parent!.Icon ?? throw new ArgumentNullException(Resource.ProjectPlan.Messages.Message_NoWindowIconAvailable);
+                if (m_Parent is null)
+                {
+                    throw new InvalidOperationException(Resource.ProjectPlan.Messages.Message_NoWindowIconAvailable);
+                }
+                standardParams.WindowIcon = m_Parent.Icon ?? throw new ArgumentNullException(Resource.ProjectPlan.Messages.Message_NoWindowIconAvailable);
                 IMsBox<ButtonResult>? msg = MessageBoxManager.GetMessageBoxStandard(standardParams);
                 return msg.ShowWindowDialogAsync(m_Parent);
             });
-        }
-
-        private async Task<ButtonResult> ShowMessageContextBoxAsync(MessageBoxContextParams contextParams)
-        {
-            return await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                contextParams.WindowIcon = m_Parent!.Icon ?? throw new ArgumentNullException(Resource.ProjectPlan.Messages.Message_NoWindowIconAvailable);
-                IMsBox<ButtonResult>? msg = GetMessageBoxContext(contextParams);
-                return msg.ShowWindowDialogAsync(m_Parent);
-            });
-        }
-
-        private static IMsBox<ButtonResult> GetMessageBoxContext(MessageBoxContextParams contextParams)
-        {
-            var msBoxContextViewModel = new MsBoxContextViewModel(contextParams);
-            var msBoxContextView = new MsBoxContextView
-            {
-                DataContext = msBoxContextViewModel
-            };
-            return new MsBox<MsBoxContextView, MsBoxContextViewModel, ButtonResult>(
-                msBoxContextView,
-                msBoxContextViewModel);
         }
 
         #endregion
@@ -129,7 +138,7 @@ namespace Zametek.View.ProjectPlan
             string header,
             string message,
             bool markdown = false,
-            Uri? link = null)
+            bool showMainPageLink = false)
         {
             var @params = new MessageBoxStandardParams
             {
@@ -142,12 +151,12 @@ namespace Zametek.View.ProjectPlan
                 Markdown = markdown
             };
 
-            if (link is not null)
+            if (showMainPageLink)
             {
                 @params.HyperLinkParams = new HyperLinkParams
                 {
-                    Text = link.AbsoluteUri,
-                    Action = () => UriHelper.Open(link),
+                    Text = UriHelper.LinkMainPage.AbsoluteUri,
+                    Action = UriHelper.OpenMainPage,
                 };
             }
 
@@ -161,7 +170,7 @@ namespace Zametek.View.ProjectPlan
             double height,
             double width,
             bool markdown = false,
-            Uri? link = null)
+            bool showMainPageLink = false)
         {
             var @params = new MessageBoxStandardParams
             {
@@ -176,12 +185,12 @@ namespace Zametek.View.ProjectPlan
                 Markdown = markdown
             };
 
-            if (link is not null)
+            if (showMainPageLink)
             {
                 @params.HyperLinkParams = new HyperLinkParams
                 {
-                    Text = link.AbsoluteUri,
-                    Action = () => UriHelper.Open(link),
+                    Text = UriHelper.LinkMainPage.AbsoluteUri,
+                    Action = UriHelper.OpenMainPage,
                 };
             }
 
@@ -190,15 +199,20 @@ namespace Zametek.View.ProjectPlan
 
         public async Task<bool> ShowContextAsync(
             string title,
+            string header,
+            string message,
             object context,
             bool markdown = false)
         {
-            var result = await ShowMessageContextBoxAsync(
-                 new MessageBoxContextParams(context)
+            var result = await ShowMessageBoxAsync(
+                 new MessageBoxStandardParams
                  {
                      WindowStartupLocation = WindowStartupLocation.CenterOwner,
                      SizeToContent = SizeToContent.WidthAndHeight,
                      ContentTitle = title,
+                     ContentHeader = header,
+                     ContentMessage = message,
+                     Context = context,
                      ButtonDefinitions = ButtonEnum.OkCancel,
                      Icon = Icon.None,
                      Markdown = markdown
@@ -208,17 +222,22 @@ namespace Zametek.View.ProjectPlan
 
         public async Task<bool> ShowContextAsync(
             string title,
+            string header,
+            string message,
             object context,
             double height,
             double width,
             bool markdown = false)
         {
-            var result = await ShowMessageContextBoxAsync(
-                new MessageBoxContextParams(context)
+            var result = await ShowMessageBoxAsync(
+                new MessageBoxStandardParams
                 {
                     WindowStartupLocation = WindowStartupLocation.CenterOwner,
                     SizeToContent = SizeToContent.Manual,
                     ContentTitle = title,
+                    ContentHeader = header,
+                    ContentMessage = message,
+                    Context = context,
                     Height = height,
                     Width = width,
                     ButtonDefinitions = ButtonEnum.OkCancel,
@@ -234,18 +253,22 @@ namespace Zametek.View.ProjectPlan
             string message,
             bool markdown = false)
         {
-            ButtonResult result = await ShowMessageBoxAsync(new MessageBoxStandardParams
+            return await Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                SizeToContent = SizeToContent.WidthAndHeight,
-                ContentTitle = title,
-                ContentHeader = header,
-                ContentMessage = message,
-                ButtonDefinitions = ButtonEnum.YesNo,
-                Icon = Icon.Info,
-                Markdown = markdown
+                if (m_Parent is null)
+                {
+                    return false;
+                }
+
+                // Combine header + message into one string for the custom dialog.
+                string body = string.IsNullOrWhiteSpace(header)
+                    ? message
+                    : $"{header}\n\n{message}";
+
+                var dialog = new ConfirmationDialog(title, body);
+                await dialog.ShowDialog(m_Parent);
+                return dialog.Result;
             });
-            return result == ButtonResult.Yes;
         }
 
         public async Task<string?> ShowOpenFileDialogAsync(
@@ -259,7 +282,7 @@ namespace Zametek.View.ProjectPlan
                 return null;
             }
 
-            var filters = m_Mapper.Map<IList<IFileFilter>, List<FilePickerFileType>>(fileFilters);
+            List<FilePickerFileType> filters = [.. fileFilters.Cast<FileFilter>().Select(BuildFilePickerFileType)];
 
             var options = new FilePickerOpenOptions
             {
@@ -293,7 +316,7 @@ namespace Zametek.View.ProjectPlan
                 return null;
             }
 
-            var filters = m_Mapper.Map<IList<IFileFilter>, List<FilePickerFileType>>(fileFilters);
+            List<FilePickerFileType> filters = [.. fileFilters.Cast<FileFilter>().Select(BuildFilePickerFileType)];
 
             var options = new FilePickerSaveOptions
             {

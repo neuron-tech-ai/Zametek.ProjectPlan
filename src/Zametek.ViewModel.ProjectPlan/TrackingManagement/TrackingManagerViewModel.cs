@@ -10,7 +10,7 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
 
         private readonly ICoreViewModel m_CoreViewModel;
         private readonly IResourceSettingsManagerViewModel m_ResourceSettingsManagerViewModel;
@@ -29,7 +29,7 @@ namespace Zametek.ViewModel.ProjectPlan
             ArgumentNullException.ThrowIfNull(coreViewModel);
             ArgumentNullException.ThrowIfNull(resourceSettingsManagerViewModel);
             ArgumentNullException.ThrowIfNull(dateTimeCalculator);
-            m_Lock = new object();
+            m_Lock = new();
             m_CoreViewModel = coreViewModel;
             m_ResourceSettingsManagerViewModel = resourceSettingsManagerViewModel;
             m_DateTimeCalculator = dateTimeCalculator;
@@ -65,9 +65,10 @@ namespace Zametek.ViewModel.ProjectPlan
 
             m_ColumnTitleSub = this
                 .WhenAnyValue(
-                    tm => tm.m_DateTimeCalculator.CalculatorMode,
+                    tm => tm.m_DateTimeCalculator.NonWorkingDayMode,
                     tm => tm.m_CoreViewModel.TrackerIndex,
                     tm => tm.m_CoreViewModel.DisplaySettingsViewModel.ShowDates,
+                    tm => tm.m_CoreViewModel.HolidaySettings,
                     tm => tm.m_CoreViewModel.ProjectStart)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Subscribe(_ => RefreshDays());
@@ -149,7 +150,11 @@ namespace Zametek.ViewModel.ProjectPlan
         private readonly ObservableAsPropertyHelper<bool> m_HasCompilationErrors;
         public bool HasCompilationErrors => m_HasCompilationErrors.Value;
 
+        public IReadOnlyList<IManagedActivityViewModel> RawActivities => m_CoreViewModel.RawActivities;
+
         public ReadOnlyObservableCollection<IManagedActivityViewModel> Activities => m_CoreViewModel.Activities;
+
+        public IReadOnlyList<IManagedResourceViewModel> RawResources => m_ResourceSettingsManagerViewModel.RawResources;
 
         public ReadOnlyObservableCollection<IManagedResourceViewModel> Resources => m_ResourceSettingsManagerViewModel.Resources;
 
@@ -235,7 +240,6 @@ namespace Zametek.ViewModel.ProjectPlan
 
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects).
                 KillSubscriptions();
                 m_IsBusy?.Dispose();
                 m_HasActivities?.Dispose();
@@ -245,9 +249,6 @@ namespace Zametek.ViewModel.ProjectPlan
                 m_ProjectStart?.Dispose();
                 m_HasCompilationErrors?.Dispose();
             }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
 
             m_Disposed = true;
         }

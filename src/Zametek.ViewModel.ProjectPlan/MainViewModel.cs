@@ -1,5 +1,7 @@
 using Dock.Model.Controls;
 using Dock.Model.Core;
+using Dock.Model.ReactiveUI.Controls;
+using Dock.Serializer;
 using ReactiveUI;
 using System.Diagnostics;
 using System.Reactive;
@@ -16,16 +18,16 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
 
-        private static readonly IList<IFileFilter> s_ProjectPlanFileFilters =
+        private static readonly IList<IFileFilter> s_ProjectFileFilters =
             [
                 new FileFilter
                 {
-                    Name = Resource.ProjectPlan.Filters.Filter_ProjectPlanFileType,
+                    Name = Resource.ProjectPlan.Filters.Filter_ProjectFileType,
                     Patterns =
                     [
-                        Resource.ProjectPlan.Filters.Filter_ProjectPlanFilePattern
+                        Resource.ProjectPlan.Filters.Filter_ProjectFilePattern
                     ]
                 },
                 new FileFilter
@@ -72,13 +74,31 @@ namespace Zametek.ViewModel.ProjectPlan
             ];
 
         private readonly IFactory m_DockFactory;
+        private readonly IDataGridManager m_DataGridManager;
+        private readonly IProjectScenarioManagerViewModel m_ProjectScenarioManagerViewModel;
         private readonly ICoreViewModel m_CoreViewModel;
-        private readonly IProjectFileImport m_ProjectFileImport;
-        private readonly IProjectFileExport m_ProjectFileExport;
         private readonly IProjectFileOpen m_ProjectFileOpen;
         private readonly IProjectFileSave m_ProjectFileSave;
         private readonly ISettingService m_SettingService;
         private readonly IDialogService m_DialogService;
+        private readonly IServiceProvider m_ServiceProvider;
+
+        private readonly IActivitiesManagerViewModel m_ActivitiesManagerViewModel;
+        private readonly IGanttChartManagerViewModel m_GanttChartManagerViewModel;
+        private readonly IResourceChartManagerViewModel m_ResourceChartManagerViewModel;
+        private readonly IScenarioChartManagerViewModel m_ScenarioChartManagerViewModel;
+        private readonly IArrowGraphManagerViewModel m_ArrowGraphManagerViewModel;
+        private readonly IVertexGraphManagerViewModel m_VertexGraphManagerViewModel;
+        private readonly ITrackingManagerViewModel m_TrackingManagerViewModel;
+        private readonly IResourceSettingsManagerViewModel m_ResourceSettingsManagerViewModel;
+        private readonly IWorkStreamSettingsManagerViewModel m_WorkStreamSettingsManagerViewModel;
+        private readonly IGraphSettingsManagerViewModel m_GraphSettingsManagerViewModel;
+        private readonly IHolidaySettingsManagerViewModel m_HolidaySettingsManagerViewModel;
+        private readonly IMetricManagerViewModel m_MetricManagerViewModel;
+        private readonly IEarnedValueChartManagerViewModel m_EarnedValueChartManagerViewModel;
+        private readonly IOutputManagerViewModel m_OutputManagerViewModel;
+
+        private readonly IDisposable? m_ProjectTitleUpdateSub;
 
         #endregion
 
@@ -86,98 +106,163 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public MainViewModel(
             IFactory dockFactory,
+            IDataGridManager dataGridManager,
+            IProjectScenarioManagerViewModel projectScenarioManagerViewModel,
             ICoreViewModel coreViewModel,
-            IProjectFileImport projectFileImport,
-            IProjectFileExport projectFileExport,
             IProjectFileOpen projectFileOpen,
             IProjectFileSave projectFileSave,
             ISettingService settingService,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            IServiceProvider serviceProvider,
+            IActivitiesManagerViewModel activitiesManagerViewModel,
+            IGanttChartManagerViewModel ganttChartManagerViewModel,
+            IResourceChartManagerViewModel resourceChartManagerViewModel,
+            IScenarioChartManagerViewModel scenarioChartManagerViewModel,
+            IArrowGraphManagerViewModel arrowGraphManagerViewModel,
+            IVertexGraphManagerViewModel vertexGraphManagerViewModel,
+            ITrackingManagerViewModel trackingManagerViewModel,
+            IResourceSettingsManagerViewModel resourceSettingsManagerViewModel,
+            IWorkStreamSettingsManagerViewModel workStreamSettingsManagerViewModel,
+            IGraphSettingsManagerViewModel graphSettingsManagerViewModel,
+            IHolidaySettingsManagerViewModel holidaySettingsManagerViewModel,
+            IMetricManagerViewModel metricManagerViewModel,
+            IEarnedValueChartManagerViewModel earnedValueChartManagerViewModel,
+            IOutputManagerViewModel outputManagerViewModel)
         {
             ArgumentNullException.ThrowIfNull(dockFactory);
+            ArgumentNullException.ThrowIfNull(dataGridManager);
+            ArgumentNullException.ThrowIfNull(projectScenarioManagerViewModel);
             ArgumentNullException.ThrowIfNull(coreViewModel);
-            ArgumentNullException.ThrowIfNull(projectFileImport);
-            ArgumentNullException.ThrowIfNull(projectFileExport);
             ArgumentNullException.ThrowIfNull(projectFileOpen);
             ArgumentNullException.ThrowIfNull(projectFileSave);
             ArgumentNullException.ThrowIfNull(settingService);
             ArgumentNullException.ThrowIfNull(dialogService);
-            m_Lock = new object();
+            ArgumentNullException.ThrowIfNull(serviceProvider);
+            ArgumentNullException.ThrowIfNull(activitiesManagerViewModel);
+            ArgumentNullException.ThrowIfNull(ganttChartManagerViewModel);
+            ArgumentNullException.ThrowIfNull(resourceChartManagerViewModel);
+            ArgumentNullException.ThrowIfNull(scenarioChartManagerViewModel);
+            ArgumentNullException.ThrowIfNull(arrowGraphManagerViewModel);
+            ArgumentNullException.ThrowIfNull(vertexGraphManagerViewModel);
+            ArgumentNullException.ThrowIfNull(trackingManagerViewModel);
+            ArgumentNullException.ThrowIfNull(resourceSettingsManagerViewModel);
+            ArgumentNullException.ThrowIfNull(workStreamSettingsManagerViewModel);
+            ArgumentNullException.ThrowIfNull(graphSettingsManagerViewModel);
+            ArgumentNullException.ThrowIfNull(holidaySettingsManagerViewModel);
+            ArgumentNullException.ThrowIfNull(metricManagerViewModel);
+            ArgumentNullException.ThrowIfNull(earnedValueChartManagerViewModel);
+            ArgumentNullException.ThrowIfNull(outputManagerViewModel);
+            m_Lock = new();
             m_DockFactory = dockFactory;
+            m_DataGridManager = dataGridManager;
+            m_ProjectScenarioManagerViewModel = projectScenarioManagerViewModel;
             m_CoreViewModel = coreViewModel;
-            m_ProjectFileImport = projectFileImport;
-            m_ProjectFileExport = projectFileExport;
             m_ProjectFileOpen = projectFileOpen;
             m_ProjectFileSave = projectFileSave;
             m_SettingService = settingService;
             m_DialogService = dialogService;
+            m_ServiceProvider = serviceProvider;
+            m_ActivitiesManagerViewModel = activitiesManagerViewModel;
+            m_GanttChartManagerViewModel = ganttChartManagerViewModel;
+            m_ResourceChartManagerViewModel = resourceChartManagerViewModel;
+            m_ScenarioChartManagerViewModel = scenarioChartManagerViewModel;
+            m_ArrowGraphManagerViewModel = arrowGraphManagerViewModel;
+            m_VertexGraphManagerViewModel = vertexGraphManagerViewModel;
+            m_TrackingManagerViewModel = trackingManagerViewModel;
+            m_ResourceSettingsManagerViewModel = resourceSettingsManagerViewModel;
+            m_WorkStreamSettingsManagerViewModel = workStreamSettingsManagerViewModel;
+            m_GraphSettingsManagerViewModel = graphSettingsManagerViewModel;
+            m_HolidaySettingsManagerViewModel = holidaySettingsManagerViewModel;
+            m_MetricManagerViewModel = metricManagerViewModel;
+            m_EarnedValueChartManagerViewModel = earnedValueChartManagerViewModel;
+            m_OutputManagerViewModel = outputManagerViewModel;
+            m_ProjectTitle = string.Empty;
+            m_IsMainBusy = false;
 
             {
-                ReactiveCommand<Unit, Unit> openProjectPlanFileCommand = ReactiveCommand.CreateFromTask(OpenProjectPlanFileAsync);
-                openProjectPlanFileCommand.IsExecuting.ToProperty(this, main => main.IsOpening, out m_IsOpening);
-                OpenProjectPlanFileCommand = openProjectPlanFileCommand;
+                ReactiveCommand<Unit, Unit> openProjectFileCommand = ReactiveCommand.CreateFromTask(OpenProjectFileAsync);
+                openProjectFileCommand.IsExecuting.ToProperty(this, main => main.IsOpening, out m_IsOpening);
+                OpenProjectFileCommand = openProjectFileCommand;
             }
             {
-                ReactiveCommand<Unit, Unit> saveProjectPlanFileCommand = ReactiveCommand.CreateFromTask(SaveProjectPlanFileAsync);
-                saveProjectPlanFileCommand.IsExecuting.ToProperty(this, main => main.IsSaving, out m_IsSaving);
-                SaveProjectPlanFileCommand = saveProjectPlanFileCommand;
+                ReactiveCommand<Unit, Unit> saveProjectFileCommand = ReactiveCommand.CreateFromTask(SaveProjectFileAsync);
+                saveProjectFileCommand.IsExecuting.ToProperty(this, main => main.IsSaving, out m_IsSaving);
+                SaveProjectFileCommand = saveProjectFileCommand;
             }
             {
-                ReactiveCommand<Unit, Unit> saveAsProjectPlanFileCommand = ReactiveCommand.CreateFromTask(SaveAsProjectPlanFileAsync);
-                saveAsProjectPlanFileCommand.IsExecuting.ToProperty(this, main => main.IsSavingAs, out m_IsSavingAs);
-                SaveAsProjectPlanFileCommand = saveAsProjectPlanFileCommand;
+                ReactiveCommand<Unit, Unit> saveAsProjectFileCommand = ReactiveCommand.CreateFromTask(SaveAsProjectFileAsync);
+                saveAsProjectFileCommand.IsExecuting.ToProperty(this, main => main.IsSavingAs, out m_IsSavingAs);
+                SaveAsProjectFileCommand = saveAsProjectFileCommand;
             }
             {
-                ReactiveCommand<Unit, Unit> importProjectFileCommand = ReactiveCommand.CreateFromTask(ImportProjectFileAsync);
-                importProjectFileCommand.IsExecuting.ToProperty(this, main => main.IsImporting, out m_IsImporting);
-                ImportProjectFileCommand = importProjectFileCommand;
+                ReactiveCommand<Unit, Unit> importProjectScenarioFileCommand = ReactiveCommand.CreateFromTask(ImportProjectScenarioFileAsync);
+                importProjectScenarioFileCommand.IsExecuting.ToProperty(this, main => main.IsImporting, out m_IsImporting);
+                ImportProjectScenarioFileCommand = importProjectScenarioFileCommand;
             }
             {
-                ReactiveCommand<Unit, Unit> exportProjectFileCommand = ReactiveCommand.CreateFromTask(ExportProjectFileAsync);
-                exportProjectFileCommand.IsExecuting.ToProperty(this, main => main.IsExporting, out m_IsExporting);
-                ExportProjectFileCommand = exportProjectFileCommand;
+                ReactiveCommand<Unit, Unit> exportProjectScenarioFileCommand = ReactiveCommand.CreateFromTask(ExportProjectScenarioFileAsync);
+                exportProjectScenarioFileCommand.IsExecuting.ToProperty(this, main => main.IsExporting, out m_IsExporting);
+                ExportProjectScenarioFileCommand = exportProjectScenarioFileCommand;
             }
             {
-                ReactiveCommand<Unit, Unit> closeProjectPlanCommand = ReactiveCommand.CreateFromTask(CloseProjectPlanAsync);
-                closeProjectPlanCommand.IsExecuting.ToProperty(this, main => main.IsClosing, out m_IsClosing);
-                CloseProjectPlanCommand = closeProjectPlanCommand;
+                ReactiveCommand<Unit, Unit> closeProjectCommand = ReactiveCommand.CreateFromTask(CloseProjectAsync);
+                closeProjectCommand.IsExecuting.ToProperty(this, main => main.IsClosing, out m_IsClosing);
+                CloseProjectCommand = closeProjectCommand;
             }
 
             ToggleShowDatesCommand = ReactiveCommand.Create(ToggleShowDates);
             ToggleUseClassicDatesCommand = ReactiveCommand.Create(ToggleUseClassicDates);
-            ToggleUseBusinessDaysCommand = ReactiveCommand.Create(ToggleUseBusinessDays);
+
+            ChangeNonWorkingDayModeCommand = ReactiveCommand.CreateFromTask<NonWorkingDayMode>(ChangeNonWorkingDayModeAsync);
+
             ToggleHideCostCommand = ReactiveCommand.Create(ToggleHideCost);
             ToggleHideBillingCommand = ReactiveCommand.Create(ToggleHideBilling);
 
             ToggleDefaultShowDatesCommand = ReactiveCommand.Create(ToggleDefaultShowDates);
             ToggleDefaultUseClassicDatesCommand = ReactiveCommand.Create(ToggleDefaultUseClassicDates);
-            ToggleDefaultUseBusinessDaysCommand = ReactiveCommand.Create(ToggleDefaultUseBusinessDays);
+
+            ChangeDefaultNonWorkingDayModeCommand = ReactiveCommand.CreateFromTask<NonWorkingDayMode>(ChangeDefaultNonWorkingDayModeAsync);
+
             ToggleDefaultHideCostCommand = ReactiveCommand.Create(ToggleDefaultHideCost);
             ToggleDefaultHideBillingCommand = ReactiveCommand.Create(ToggleDefaultHideBilling);
 
             ChangeThemeCommand = ReactiveCommand.CreateFromTask<string>(ChangeThemeAsync);
+            SaveLayoutCommand = ReactiveCommand.CreateFromTask(SaveLayoutAsync);
+            ResetLayoutCommand = ReactiveCommand.CreateFromTask(ResetLayoutAsync);
 
             CompileCommand = ReactiveCommand.CreateFromTask(ForceCompileAsync);
             ToggleAutoCompileCommand = ReactiveCommand.Create(ToggleAutoCompile);
             TransitiveReductionCommand = ReactiveCommand.Create(RunTransitiveReductionAsync);
 
-            OpenHyperLinkCommand = ReactiveCommand.CreateFromTask<string>(OpenHyperLinkAsync);
+            OpenDocumentationCommand = ReactiveCommand.CreateFromTask(OpenDocumentationAsync);
+            OpenDonateCommand = ReactiveCommand.CreateFromTask(OpenDonateAsync);
+            OpenMainPageCommand = ReactiveCommand.CreateFromTask(OpenMainPageAsync);
+            OpenReportIssueCommand = ReactiveCommand.CreateFromTask(OpenReportIssueAsync);
+            OpenViewLicenseCommand = ReactiveCommand.CreateFromTask(OpenViewLicenseAsync);
             OpenAboutCommand = ReactiveCommand.Create(OpenAboutAsync);
 
-            m_ProjectTitle = this
-                .WhenAnyValue(
-                    main => main.m_CoreViewModel.ProjectTitle,
-                    main => main.m_CoreViewModel.IsProjectUpdated,
-                    (title, isProjectUpdate) => $@"{(isProjectUpdate ? "*" : "")}{(string.IsNullOrWhiteSpace(title) ? Resource.ProjectPlan.Titles.Title_UntitledProject : title)} - {Resource.ProjectPlan.Titles.Title_ProjectPlan} {Resource.ProjectPlan.Labels.Label_AppVersion}")
-                .ToProperty(this, main => main.ProjectTitle);
-
             m_IsBusy = this
-                .WhenAnyValue(main => main.m_CoreViewModel.IsBusy)
-                .ToProperty(this, x => x.IsBusy);
+                .WhenAnyValue(
+                    main => main.IsMainBusy,
+                    main => main.m_CoreViewModel.IsBusy,
+                    main => main.m_ProjectScenarioManagerViewModel.IsBusy,
+                    (isMainBusy, isCoreBusy, isProjectBusy) => isMainBusy || isCoreBusy || isProjectBusy)
+                .ToProperty(this, main => main.IsBusy);
 
             m_IsProjectUpdated = this
-                .WhenAnyValue(main => main.m_CoreViewModel.IsProjectUpdated)
-                .ToProperty(this, main => main.IsProjectUpdated);
+                .WhenAnyValue(pm => pm.m_ProjectScenarioManagerViewModel.IsProjectUpdated)
+                .ToProperty(this, pm => pm.IsProjectUpdated);
+
+            m_IsProjectScenarioUpdated = this
+                .WhenAnyValue(pm => pm.m_CoreViewModel.IsProjectScenarioUpdated)
+                .ToProperty(this, pm => pm.IsProjectScenarioUpdated);
+
+            m_ProjectHasChanges = this
+                .WhenAnyValue(
+                    pm => pm.IsProjectUpdated,
+                    pm => pm.IsProjectScenarioUpdated,
+                    (isProjectUpdated, isProjectScenarioUpdated) => isProjectUpdated || isProjectScenarioUpdated)
+                .ToProperty(this, pm => pm.ProjectHasChanges);
 
             m_ProjectStart = this
                 .WhenAnyValue(main => main.m_CoreViewModel.ProjectStart)
@@ -203,9 +288,9 @@ namespace Zametek.ViewModel.ProjectPlan
                 .WhenAnyValue(main => main.m_CoreViewModel.DisplaySettingsViewModel.UseClassicDates)
                 .ToProperty(this, main => main.UseClassicDates);
 
-            m_UseBusinessDays = this
-                .WhenAnyValue(main => main.m_CoreViewModel.DisplaySettingsViewModel.UseBusinessDays)
-                .ToProperty(this, main => main.UseBusinessDays);
+            m_NonWorkingDayMode = this
+                .WhenAnyValue(main => main.m_CoreViewModel.DisplaySettingsViewModel.NonWorkingDayMode)
+                .ToProperty(this, main => main.NonWorkingDayMode);
 
             m_HideCost = this
                 .WhenAnyValue(main => main.m_CoreViewModel.DisplaySettingsViewModel.HideCost)
@@ -223,9 +308,9 @@ namespace Zametek.ViewModel.ProjectPlan
                 .WhenAnyValue(main => main.m_CoreViewModel.DefaultUseClassicDates)
                 .ToProperty(this, main => main.DefaultUseClassicDates);
 
-            m_DefaultUseBusinessDays = this
-                .WhenAnyValue(main => main.m_CoreViewModel.DefaultUseBusinessDays)
-                .ToProperty(this, main => main.DefaultUseBusinessDays);
+            m_DefaultNonWorkingDayMode = this
+                .WhenAnyValue(main => main.m_CoreViewModel.DefaultNonWorkingDayMode)
+                .ToProperty(this, main => main.DefaultNonWorkingDayMode);
 
             m_DefaultHideCost = this
                 .WhenAnyValue(main => main.m_CoreViewModel.DefaultHideCost)
@@ -247,30 +332,46 @@ namespace Zametek.ViewModel.ProjectPlan
                 .WhenAnyValue(main => main.m_CoreViewModel.BaseTheme)
                 .ToProperty(this, main => main.BaseTheme);
 
+            m_ProjectTitleUpdateSub = this
+                .WhenAnyValue(
+                    main => main.ProjectHasChanges,
+                    main => main.m_ProjectScenarioManagerViewModel.IsReadyToReviseTitle,
+                    (projectHasChanges, isReadyToReviseTitle) =>
+                    {
+                        string newTitle = ProjectTitle;
+
+                        if (isReadyToReviseTitle == ReadyToRevise.Yes
+                            || projectHasChanges)
+                        {
+                            string projectTitle = m_SettingService.ProjectTitle;
+                            string scenarioTitle = m_SettingService.ScenarioTitle;
+                            Guid projectScenarioId = m_SettingService.ScenarioId;
+
+                            string scenario = projectScenarioId.ToShortString();
+                            if (!string.IsNullOrWhiteSpace(scenarioTitle))
+                            {
+                                scenario = scenarioTitle;
+                            }
+
+                            newTitle = $@"{(projectHasChanges ? "*" : string.Empty)}{(string.IsNullOrWhiteSpace(projectTitle) ? Resource.ProjectPlan.Titles.Title_UntitledProject : projectTitle)} - {scenario} - {Resource.ProjectPlan.Titles.Title_ProjectPlan} {Resource.ProjectPlan.Labels.Label_AppVersion}";
+                            m_ProjectScenarioManagerViewModel.IsReadyToReviseTitle = ReadyToRevise.No;
+                        }
+
+                        return newTitle;
+                    })
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .Subscribe(projectTitle =>
+                {
+                    ProjectTitle = projectTitle;
+                });
+
             m_CoreViewModel.AutoCompile = true;
 
-            var displaySettings = new DisplaySettingsModel
-            {
-                ShowDates = m_CoreViewModel.DisplaySettingsViewModel.ShowDates,
-                UseClassicDates = m_CoreViewModel.DisplaySettingsViewModel.UseClassicDates,
-                UseBusinessDays = m_CoreViewModel.DisplaySettingsViewModel.UseBusinessDays,
-                HideCost = m_CoreViewModel.DisplaySettingsViewModel.HideCost,
-                HideBilling = m_CoreViewModel.DisplaySettingsViewModel.HideBilling,
-            };
-
-            m_CoreViewModel.DisplaySettingsViewModel.SetValues(displaySettings);
-
-            m_CoreViewModel.IsProjectUpdated = false;
-
+            ResetProject();
 #if DEBUG
             DebugFactoryEvents(m_DockFactory);
 #endif
-
-            m_Layout = m_DockFactory.CreateLayout();
-            if (m_Layout is not null)
-            {
-                m_DockFactory.InitLayout(m_Layout);
-            }
+            RestoreLayout();
         }
 
         #endregion
@@ -283,6 +384,57 @@ namespace Zametek.ViewModel.ProjectPlan
             get => m_Layout;
             set => this.RaiseAndSetIfChanged(ref m_Layout, value);
         }
+
+        private bool m_IsMainBusy;
+        private bool IsMainBusy
+        {
+            get => m_IsMainBusy;
+            set => this.RaiseAndSetIfChanged(ref m_IsMainBusy, value);
+        }
+
+        private ShellView m_ActiveShellView;
+        public ShellView ActiveShellView
+        {
+            get => m_ActiveShellView;
+            set => this.RaiseAndSetIfChanged(ref m_ActiveShellView, value);
+        }
+
+        private bool m_IsCommandPaletteOpen;
+        public bool IsCommandPaletteOpen
+        {
+            get => m_IsCommandPaletteOpen;
+            set => this.RaiseAndSetIfChanged(ref m_IsCommandPaletteOpen, value);
+        }
+
+        public IActivitiesManagerViewModel ActivitiesManagerViewModel => m_ActivitiesManagerViewModel;
+
+        public IGanttChartManagerViewModel GanttChartManagerViewModel => m_GanttChartManagerViewModel;
+
+        public IResourceChartManagerViewModel ResourceChartManagerViewModel => m_ResourceChartManagerViewModel;
+
+        public IScenarioChartManagerViewModel ScenarioChartManagerViewModel => m_ScenarioChartManagerViewModel;
+
+        public IArrowGraphManagerViewModel ArrowGraphManagerViewModel => m_ArrowGraphManagerViewModel;
+
+        public IVertexGraphManagerViewModel VertexGraphManagerViewModel => m_VertexGraphManagerViewModel;
+
+        public ITrackingManagerViewModel TrackingManagerViewModel => m_TrackingManagerViewModel;
+
+        public IResourceSettingsManagerViewModel ResourceSettingsManagerViewModel => m_ResourceSettingsManagerViewModel;
+
+        public IWorkStreamSettingsManagerViewModel WorkStreamSettingsManagerViewModel => m_WorkStreamSettingsManagerViewModel;
+
+        public IGraphSettingsManagerViewModel GraphSettingsManagerViewModel => m_GraphSettingsManagerViewModel;
+
+        public IHolidaySettingsManagerViewModel HolidaySettingsManagerViewModel => m_HolidaySettingsManagerViewModel;
+
+        public IMetricManagerViewModel MetricManagerViewModel => m_MetricManagerViewModel;
+
+        public IEarnedValueChartManagerViewModel EarnedValueChartManagerViewModel => m_EarnedValueChartManagerViewModel;
+
+        public IProjectScenarioManagerViewModel ProjectScenarioManagerViewModel => m_ProjectScenarioManagerViewModel;
+
+        public IOutputManagerViewModel OutputManagerViewModel => m_OutputManagerViewModel;
 
         #endregion
 
@@ -388,7 +540,20 @@ namespace Zametek.ViewModel.ProjectPlan
 
         private void ToggleUseClassicDates() => UseClassicDates = !UseClassicDates;
 
-        private void ToggleUseBusinessDays() => UseBusinessDays = !UseBusinessDays;
+        private async Task ChangeNonWorkingDayModeAsync(NonWorkingDayMode mode)
+        {
+            try
+            {
+                NonWorkingDayMode = mode;
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
 
         private void ToggleHideCost() => HideCost = !HideCost;
 
@@ -398,7 +563,20 @@ namespace Zametek.ViewModel.ProjectPlan
 
         private void ToggleDefaultUseClassicDates() => DefaultUseClassicDates = !DefaultUseClassicDates;
 
-        private void ToggleDefaultUseBusinessDays() => DefaultUseBusinessDays = !DefaultUseBusinessDays;
+        private async Task ChangeDefaultNonWorkingDayModeAsync(NonWorkingDayMode mode)
+        {
+            try
+            {
+                DefaultNonWorkingDayMode = mode;
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
 
         private void ToggleDefaultHideCost() => DefaultHideCost = !DefaultHideCost;
 
@@ -406,15 +584,53 @@ namespace Zametek.ViewModel.ProjectPlan
 
         private void ToggleAutoCompile() => AutoCompile = !AutoCompile;
 
-        private void ProcessProjectImport(ProjectImportModel importModel) => m_CoreViewModel.ProcessProjectImport(importModel);
+        private async Task ProjectScenarioImportAsync(string filename) =>
+            await Task.Run(() => ProjectScenarioImport(filename));
 
-        private void ProcessProjectPlan(ProjectPlanModel planModel) => m_CoreViewModel.ProcessProjectPlan(planModel);
+        private void ProjectScenarioImport(string filename)
+        {
+            lock (m_Lock)
+            {
+                Guid projectScenarioId = m_SettingService.ScenarioId;
+                string projectScenarioTitle = m_SettingService.ScenarioTitle;
+                ProjectScenarioImportModel importModel = m_CoreViewModel.ImportProjectScenarioFile(filename);
+                m_CoreViewModel.ProcessProjectScenarioImport(importModel, projectScenarioId, projectScenarioTitle);
+            }
+        }
 
-        private async Task<ProjectPlanModel> BuildProjectPlanAsync() => await Task.Run(m_CoreViewModel.BuildProjectPlan);
+        private async Task ProjectScenarioExportAsync(string filename) =>
+            await Task.Run(() => ProjectScenarioExport(filename));
+
+        private void ProjectScenarioExport(string filename)
+        {
+            lock (m_Lock)
+            {
+                ProjectScenarioModel projectScenarioModel = m_CoreViewModel.BuildProjectScenario();
+                m_CoreViewModel.ExportProjectScenarioFile(
+                    projectScenarioModel,
+                    m_CoreViewModel.ResourceSeriesSet,
+                    m_CoreViewModel.TrackingSeriesSet,
+                    ShowDates,
+                    filename);
+            }
+        }
+
+        private async Task<ProjectModel> BuildProjectAsync() => await Task.Run(BuildProject);
+
+        private ProjectModel BuildProject()
+        {
+            lock (m_Lock)
+            {
+                return m_ProjectScenarioManagerViewModel.BuildProject();
+            }
+        }
 
         private async Task ForceCompileAsync() => await Task.Run(async () =>
         {
+            // We set this flag to force revision of trackers in case there
+            // changes to activities or resources have occurred since the last compile.
             m_CoreViewModel.IsReadyToReviseTrackers = ReadyToRevise.Yes;
+
             await RunCompileAsync(); // Need to force a compilation here.
         });
 
@@ -424,20 +640,30 @@ namespace Zametek.ViewModel.ProjectPlan
 
         private async Task RunTransitiveReductionAsync() => await Task.Run(m_CoreViewModel.RunTransitiveReduction);
 
-        private void ResetProject() => m_CoreViewModel.ResetProject();
-
-        private async Task OpenProjectPlanFileInternalAsync(string? filename)
+        private void ResetProject()
         {
-            if (!string.IsNullOrWhiteSpace(filename))
+            lock (m_Lock)
             {
-                ProjectPlanModel planModel = await m_ProjectFileOpen.OpenProjectPlanFileAsync(filename);
-                ProcessProjectPlan(planModel);
-                m_SettingService.SetProjectFilePath(filename, bindTitleToFilename: true);
-                //await RunAutoCompileAsync();
+                m_ProjectScenarioManagerViewModel.ResetProject();
             }
         }
 
-        private async Task SaveProjectPlanFileInternalAsync(string? filename)
+        private async Task OpenProjectFileInternalAsync(string? filename)
+        {
+            if (!string.IsNullOrWhiteSpace(filename))
+            {
+                ProjectModel projectModel = await m_ProjectFileOpen.OpenProjectFileAsync(filename);
+
+                // First process the project.
+                m_ProjectScenarioManagerViewModel.ProcessProject(projectModel);
+
+                // Now bind the project title to the filename.
+                m_SettingService.SetProjectFilePath(filename, bindTitleToFilename: true);
+                m_ProjectScenarioManagerViewModel.IsReadyToReviseTitle = ReadyToRevise.Yes;
+            }
+        }
+
+        private async Task SaveProjectFileInternalAsync(string? filename)
         {
             if (string.IsNullOrWhiteSpace(filename))
             {
@@ -448,10 +674,13 @@ namespace Zametek.ViewModel.ProjectPlan
             }
             else
             {
-                ProjectPlanModel projectPlan = await BuildProjectPlanAsync();
-                await m_ProjectFileSave.SaveProjectPlanFileAsync(projectPlan, filename);
-                m_CoreViewModel.IsProjectUpdated = false;
+                ProjectModel projectModel = await BuildProjectAsync();
+                await m_ProjectFileSave.SaveProjectFileAsync(projectModel, filename);
+                m_CoreViewModel.IsProjectScenarioUpdated = false;
+                m_ProjectScenarioManagerViewModel.IsProjectUpdated = false;
+                m_ProjectScenarioManagerViewModel.ResetManagedNodes();
                 m_SettingService.SetProjectFilePath(filename, bindTitleToFilename: true);
+                m_ProjectScenarioManagerViewModel.IsReadyToReviseTitle = ReadyToRevise.Yes;
             }
         }
 
@@ -474,10 +703,15 @@ namespace Zametek.ViewModel.ProjectPlan
 
         #region IMainViewModel Members
 
-        private readonly ObservableAsPropertyHelper<string> m_ProjectTitle;
+        private string m_ProjectTitle;
         public string ProjectTitle
         {
-            get => m_ProjectTitle.Value;
+            get => m_ProjectTitle;
+            private set
+            {
+                m_ProjectTitle = value;
+                this.RaisePropertyChanged();
+            }
         }
 
         private readonly ObservableAsPropertyHelper<bool> m_IsBusy;
@@ -503,6 +737,12 @@ namespace Zametek.ViewModel.ProjectPlan
 
         private readonly ObservableAsPropertyHelper<bool> m_IsProjectUpdated;
         public bool IsProjectUpdated => m_IsProjectUpdated.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> m_IsProjectScenarioUpdated;
+        public bool IsProjectScenarioUpdated => m_IsProjectScenarioUpdated.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> m_ProjectHasChanges;
+        public bool ProjectHasChanges => m_ProjectHasChanges.Value;
 
         private readonly ObservableAsPropertyHelper<DateTimeOffset> m_ProjectStart;
         public DateTimeOffset ProjectStart
@@ -550,13 +790,13 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        private readonly ObservableAsPropertyHelper<bool> m_UseBusinessDays;
-        public bool UseBusinessDays
+        private readonly ObservableAsPropertyHelper<NonWorkingDayMode> m_NonWorkingDayMode;
+        public NonWorkingDayMode NonWorkingDayMode
         {
-            get => m_UseBusinessDays.Value;
+            get => m_NonWorkingDayMode.Value;
             set
             {
-                lock (m_Lock) m_CoreViewModel.DisplaySettingsViewModel.UseBusinessDays = value;
+                lock (m_Lock) m_CoreViewModel.DisplaySettingsViewModel.NonWorkingDayMode = value;
             }
         }
 
@@ -600,13 +840,13 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        private readonly ObservableAsPropertyHelper<bool> m_DefaultUseBusinessDays;
-        public bool DefaultUseBusinessDays
+        private readonly ObservableAsPropertyHelper<NonWorkingDayMode> m_DefaultNonWorkingDayMode;
+        public NonWorkingDayMode DefaultNonWorkingDayMode
         {
-            get => m_DefaultUseBusinessDays.Value;
+            get => m_DefaultNonWorkingDayMode.Value;
             set
             {
-                lock (m_Lock) m_CoreViewModel.DefaultUseBusinessDays = value;
+                lock (m_Lock) m_CoreViewModel.DefaultNonWorkingDayMode = value;
             }
         }
 
@@ -660,23 +900,23 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public ICommand OpenProjectPlanFileCommand { get; }
+        public ICommand OpenProjectFileCommand { get; }
 
-        public ICommand SaveProjectPlanFileCommand { get; }
+        public ICommand SaveProjectFileCommand { get; }
 
-        public ICommand SaveAsProjectPlanFileCommand { get; }
+        public ICommand SaveAsProjectFileCommand { get; }
 
-        public ICommand ImportProjectFileCommand { get; }
+        public ICommand ImportProjectScenarioFileCommand { get; }
 
-        public ICommand ExportProjectFileCommand { get; }
+        public ICommand ExportProjectScenarioFileCommand { get; }
 
-        public ICommand CloseProjectPlanCommand { get; }
+        public ICommand CloseProjectCommand { get; }
 
         public ICommand ToggleShowDatesCommand { get; }
 
         public ICommand ToggleUseClassicDatesCommand { get; }
 
-        public ICommand ToggleUseBusinessDaysCommand { get; }
+        public ICommand ChangeNonWorkingDayModeCommand { get; }
 
         public ICommand ToggleHideCostCommand { get; }
 
@@ -686,7 +926,7 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public ICommand ToggleDefaultUseClassicDatesCommand { get; }
 
-        public ICommand ToggleDefaultUseBusinessDaysCommand { get; }
+        public ICommand ChangeDefaultNonWorkingDayModeCommand { get; }
 
         public ICommand ToggleDefaultHideCostCommand { get; }
 
@@ -694,55 +934,169 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public ICommand ChangeThemeCommand { get; }
 
+        public ICommand SaveLayoutCommand { get; }
+
+        public ICommand ResetLayoutCommand { get; }
+
         public ICommand CompileCommand { get; }
 
         public ICommand ToggleAutoCompileCommand { get; }
 
         public ICommand TransitiveReductionCommand { get; }
 
-        public ICommand OpenHyperLinkCommand { get; }
+        public ICommand OpenDocumentationCommand { get; }
+
+        public ICommand OpenDonateCommand { get; }
+
+        public ICommand OpenMainPageCommand { get; }
+
+        public ICommand OpenReportIssueCommand { get; }
+
+        public ICommand OpenViewLicenseCommand { get; }
 
         public ICommand OpenAboutCommand { get; }
 
+        public void SaveLayout()
+        {
+            lock (m_Lock)
+            {
+                // Docks.
+                DockSerializer serializer = new(m_ServiceProvider);
+                string layoutContent = serializer.Serialize(Layout);
+                m_SettingService.DockLayout = layoutContent;
+
+                // DataGrids.
+                m_DataGridManager.SaveDataGridModels();
+            }
+        }
+
+        private async Task SaveLayoutInternalAsync() => await Task.Run(SaveLayout);
+
+        public async Task SaveLayoutAsync()
+        {
+            try
+            {
+                IsMainBusy = true;
+                await SaveLayoutInternalAsync();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+            finally
+            {
+                IsMainBusy = false;
+            }
+        }
+
+        public void RestoreLayout()
+        {
+            lock (m_Lock)
+            {
+                // Docks.
+                string layoutContent = m_SettingService.DockLayout;
+
+                if (!string.IsNullOrWhiteSpace(layoutContent))
+                {
+                    DockSerializer serializer = new(m_ServiceProvider);
+                    try
+                    {
+                        m_Layout = serializer.Deserialize<RootDock>(layoutContent);
+                    }
+                    catch (Exception ex)
+                    {
+                        // The persisted dock layout is corrupt or incompatible — reset to default.
+                        Debug.WriteLine($"[MainViewModel] Failed to deserialize dock layout, resetting: {ex.Message}");
+                        m_Layout = null;
+                    }
+                }
+
+                m_Layout ??= m_DockFactory.CreateLayout();
+
+                if (m_Layout is not null)
+                {
+                    m_DockFactory.InitLayout(m_Layout);
+                }
+
+                // DataGrids.
+                // DataGrids are restored automatically during initialization.
+            }
+        }
+
         public void CloseLayout()
         {
-            if (Layout is IDock dock)
+            lock (m_Lock)
             {
-                if (dock.Close.CanExecute(null))
+                if (Layout is IDock dock)
                 {
-                    dock.Close.Execute(null);
+                    if (dock.Close.CanExecute(null))
+                    {
+                        dock.Close.Execute(null);
+                    }
                 }
             }
         }
 
         public void ResetLayout()
         {
-            if (Layout is not null)
+            lock (m_Lock)
             {
-                if (Layout.Close.CanExecute(null))
+                // Docks.
+                if (Layout is not null)
                 {
-                    Layout.Close.Execute(null);
+                    if (Layout.Close.CanExecute(null))
+                    {
+                        Layout.Close.Execute(null);
+                    }
                 }
-            }
 
-            IRootDock? layout = m_DockFactory.CreateLayout();
-            if (layout is not null)
-            {
-                Layout = layout;
-                m_DockFactory.InitLayout(layout);
+                IRootDock? layout = m_DockFactory.CreateLayout();
+                if (layout is not null)
+                {
+                    Layout = layout;
+                    m_DockFactory.InitLayout(layout);
+                }
+
+                // DataGrids.
+                m_DataGridManager.ResetDataGridModels();
             }
         }
 
-        public async Task OpenProjectPlanFileAsync()
+        private async Task ResetLayoutInternalAsync() => await Task.Run(ResetLayout);
+
+        public async Task ResetLayoutAsync()
         {
             try
             {
-                if (IsProjectUpdated)
+                IsMainBusy = true;
+                await ResetLayoutInternalAsync();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+            finally
+            {
+                IsMainBusy = false;
+            }
+        }
+
+        public async Task OpenProjectFileAsync()
+        {
+            try
+            {
+                if (ProjectHasChanges)
                 {
                     bool confirmation = await m_DialogService.ShowConfirmationAsync(
-                        Resource.ProjectPlan.Titles.Title_UnsavedChanges,
+                        Resource.ProjectPlan.Titles.Title_ProjectUnsavedChanges,
                         string.Empty,
-                        Resource.ProjectPlan.Messages.Message_UnsavedChanges);
+                        Resource.ProjectPlan.Messages.Message_ProjectUnsavedChanges);
 
                     if (!confirmation)
                     {
@@ -750,8 +1104,8 @@ namespace Zametek.ViewModel.ProjectPlan
                     }
                 }
                 string directory = m_SettingService.ProjectDirectory;
-                string? filename = await m_DialogService.ShowOpenFileDialogAsync(directory, s_ProjectPlanFileFilters);
-                await OpenProjectPlanFileInternalAsync(filename);
+                string? filename = await m_DialogService.ShowOpenFileDialogAsync(directory, s_ProjectFileFilters);
+                await OpenProjectFileInternalAsync(filename);
             }
             catch (Exception ex)
             {
@@ -763,16 +1117,16 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public async Task OpenProjectPlanFileAsync(string? filename)
+        public async Task OpenProjectFileAsync(string? filename)
         {
             try
             {
-                if (IsProjectUpdated)
+                if (ProjectHasChanges)
                 {
                     bool confirmation = await m_DialogService.ShowConfirmationAsync(
-                        Resource.ProjectPlan.Titles.Title_UnsavedChanges,
+                        Resource.ProjectPlan.Titles.Title_ProjectUnsavedChanges,
                         string.Empty,
-                        Resource.ProjectPlan.Messages.Message_UnsavedChanges);
+                        Resource.ProjectPlan.Messages.Message_ProjectUnsavedChanges);
 
                     if (!confirmation)
                     {
@@ -780,7 +1134,7 @@ namespace Zametek.ViewModel.ProjectPlan
                     }
                 }
 
-                await OpenProjectPlanFileInternalAsync(filename);
+                await OpenProjectFileInternalAsync(filename);
             }
             catch (Exception ex)
             {
@@ -792,7 +1146,7 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public async Task SaveProjectPlanFileAsync()
+        public async Task SaveProjectFileAsync()
         {
             try
             {
@@ -801,14 +1155,14 @@ namespace Zametek.ViewModel.ProjectPlan
                 if (string.IsNullOrWhiteSpace(projectTitle)
                     || !m_SettingService.IsTitleBoundToFilename)
                 {
-                    await SaveAsProjectPlanFileAsync();
+                    await SaveAsProjectFileAsync();
                     return;
                 }
 
                 string directory = m_SettingService.ProjectDirectory;
                 string filename = Path.Combine(directory, projectTitle);
-                filename = $@"{filename}.{Resource.ProjectPlan.Filters.Filter_ProjectPlanFileExtension}";
-                await SaveProjectPlanFileInternalAsync(filename);
+                filename = $@"{filename}.{Resource.ProjectPlan.Filters.Filter_ProjectFileExtension}";
+                await SaveProjectFileInternalAsync(filename);
             }
             catch (Exception ex)
             {
@@ -819,20 +1173,20 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public async Task SaveAsProjectPlanFileAsync()
+        public async Task SaveAsProjectFileAsync()
         {
             try
             {
                 string directory = m_SettingService.ProjectDirectory;
                 string projectTitle = m_SettingService.ProjectTitle;
-                string? filename = await m_DialogService.ShowSaveFileDialogAsync(projectTitle, directory, s_ProjectPlanFileFilters);
+                string? filename = await m_DialogService.ShowSaveFileDialogAsync(projectTitle, directory, s_ProjectFileFilters);
 
                 if (string.IsNullOrWhiteSpace(filename))
                 {
                     return;
                 }
 
-                await SaveProjectPlanFileInternalAsync(filename);
+                await SaveProjectFileInternalAsync(filename);
             }
             catch (Exception ex)
             {
@@ -843,16 +1197,16 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public async Task ImportProjectFileAsync()
+        public async Task ImportProjectScenarioFileAsync()
         {
             try
             {
-                if (IsProjectUpdated)
+                if (IsProjectScenarioUpdated)
                 {
                     bool confirmation = await m_DialogService.ShowConfirmationAsync(
-                        Resource.ProjectPlan.Titles.Title_UnsavedChanges,
+                        Resource.ProjectPlan.Titles.Title_ScenarioUnsavedChanges,
                         string.Empty,
-                        Resource.ProjectPlan.Messages.Message_UnsavedChanges);
+                        Resource.ProjectPlan.Messages.Message_ScenarioUnsavedChanges);
 
                     if (!confirmation)
                     {
@@ -864,9 +1218,7 @@ namespace Zametek.ViewModel.ProjectPlan
 
                 if (!string.IsNullOrWhiteSpace(filename))
                 {
-                    ProjectImportModel importModel = await m_ProjectFileImport.ImportProjectFileAsync(filename);
-                    ProcessProjectImport(importModel);
-                    m_SettingService.SetProjectFilePath(filename, bindTitleToFilename: false);
+                    await ProjectScenarioImportAsync(filename);
                     await RunAutoCompileAsync();
                 }
             }
@@ -880,23 +1232,27 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public async Task ExportProjectFileAsync()
+        public async Task ExportProjectScenarioFileAsync()
         {
             try
             {
-                string projectTitle = m_SettingService.ProjectTitle;
+                string title = m_SettingService.ProjectTitle;
+                title = string.IsNullOrWhiteSpace(title) ? Resource.ProjectPlan.Titles.Title_UntitledProject : title;
+
+                Guid projectScenarioId = m_SettingService.ScenarioId;
+                IManagedNodeViewModel? managedNode = m_ProjectScenarioManagerViewModel.GetNode(projectScenarioId);
+
+                if (managedNode is not null)
+                {
+                    title = $@"{title}-{managedNode.Name}";
+                }
+
                 string directory = m_SettingService.ProjectDirectory;
-                string? filename = await m_DialogService.ShowSaveFileDialogAsync(projectTitle, directory, s_ExportFileFilters);
+                string? filename = await m_DialogService.ShowSaveFileDialogAsync(title, directory, s_ExportFileFilters);
 
                 if (!string.IsNullOrWhiteSpace(filename))
                 {
-                    ProjectPlanModel projectPlan = await BuildProjectPlanAsync();
-                    await m_ProjectFileExport.ExportProjectFileAsync(
-                        projectPlan,
-                        m_CoreViewModel.ResourceSeriesSet,
-                        m_CoreViewModel.TrackingSeriesSet,
-                        ShowDates,
-                        filename);
+                    await ProjectScenarioExportAsync(filename);
                 }
             }
             catch (Exception ex)
@@ -908,16 +1264,16 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public async Task CloseProjectPlanAsync()
+        public async Task CloseProjectAsync()
         {
             try
             {
-                if (IsProjectUpdated)
+                if (ProjectHasChanges)
                 {
                     bool confirmation = await m_DialogService.ShowConfirmationAsync(
-                        Resource.ProjectPlan.Titles.Title_UnsavedChanges,
+                        Resource.ProjectPlan.Titles.Title_ProjectUnsavedChanges,
                         string.Empty,
-                        Resource.ProjectPlan.Messages.Message_UnsavedChanges);
+                        Resource.ProjectPlan.Messages.Message_ProjectUnsavedChanges);
 
                     if (!confirmation)
                     {
@@ -936,12 +1292,71 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public async Task OpenHyperLinkAsync(string hyperlink)
+        public async Task OpenDocumentationAsync()
         {
             try
             {
-                var uri = new Uri(hyperlink);
-                UriHelper.Open(uri);
+                UriHelper.OpenDocumentation();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        public async Task OpenDonateAsync()
+        {
+            try
+            {
+                UriHelper.OpenDonate();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        public async Task OpenMainPageAsync()
+        {
+            try
+            {
+                UriHelper.OpenMainPage();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        public async Task OpenReportIssueAsync()
+        {
+            try
+            {
+                UriHelper.OpenReportIssue();
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        public async Task OpenViewLicenseAsync()
+        {
+            try
+            {
+                UriHelper.OpenViewLicense();
             }
             catch (Exception ex)
             {
@@ -962,10 +1377,12 @@ namespace Zametek.ViewModel.ProjectPlan
                 about.AppendLine($"{Resource.ProjectPlan.Labels.Label_Copyright}, {Resource.ProjectPlan.Labels.Label_Author}");
 
                 await m_DialogService.ShowInfoAsync(
-                    Resource.ProjectPlan.Titles.Title_ProjectPlan,
-                    Resource.ProjectPlan.Titles.Title_ProjectPlan,
-                    about.ToString(),
-                    link: new Uri(Resource.ProjectPlan.Links.Link_MainPage));
+                    title: Resource.ProjectPlan.Titles.Title_ProjectPlan,
+                    header: Resource.ProjectPlan.Titles.Title_ProjectPlan,
+                    height: double.NaN,
+                    width: 350,
+                    message: about.ToString(),
+                    showMainPageLink: true);
             }
             catch (Exception ex)
             {
@@ -974,6 +1391,21 @@ namespace Zametek.ViewModel.ProjectPlan
                     string.Empty,
                     ex.Message);
             }
+        }
+
+        public void SelectActivity(int activityId)
+        {
+            ActiveShellView = ShellView.ActivitiesGantt;
+            m_ActivitiesManagerViewModel.SelectActivityById(activityId);
+        }
+
+        #endregion
+
+        #region IKillSubscriptions Members
+
+        public void KillSubscriptions()
+        {
+            m_ProjectTitleUpdateSub?.Dispose();
         }
 
         #endregion
@@ -991,24 +1423,23 @@ namespace Zametek.ViewModel.ProjectPlan
 
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects).
-                m_ProjectTitle?.Dispose();
+                KillSubscriptions();
                 m_IsBusy?.Dispose();
                 m_IsProjectUpdated?.Dispose();
+                m_IsProjectScenarioUpdated?.Dispose();
+                m_ProjectHasChanges?.Dispose();
                 m_ProjectStart?.Dispose();
                 m_Today?.Dispose();
                 m_HasStaleOutputs?.Dispose();
                 m_HasCompilationErrors?.Dispose();
                 m_ShowDates?.Dispose();
                 m_UseClassicDates?.Dispose();
-                m_UseBusinessDays?.Dispose();
+                m_NonWorkingDayMode?.Dispose();
                 m_AutoCompile?.Dispose();
                 m_SelectedTheme?.Dispose();
                 m_BaseTheme?.Dispose();
+                m_DataGridManager?.Dispose();
             }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
 
             m_Disposed = true;
         }

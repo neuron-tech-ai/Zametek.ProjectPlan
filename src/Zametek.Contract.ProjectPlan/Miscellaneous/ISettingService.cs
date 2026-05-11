@@ -6,15 +6,31 @@ namespace Zametek.Contract.ProjectPlan
     {
         string SettingsFilename { get; }
 
+        string DockLayoutFilename { get; }
+
+        string DataGridLayoutFilename { get; }
+
+        Guid ProjectId { get; }
+
         string ProjectTitle { get; }
 
+        Guid ScenarioId { get; }
+
+        string ScenarioTitle { get; }
+
         string ProjectDirectory { get; }
+
+        string DockLayout { get; set; }
+
+        IList<DataGridModel> GetDataGridLayout();
+
+        void SetDataGridLayout(IList<DataGridModel> models);
 
         bool DefaultShowDates { get; set; }
 
         bool DefaultUseClassicDates { get; set; }
 
-        bool DefaultUseBusinessDays { get; set; }
+        NonWorkingDayMode DefaultNonWorkingDayMode { get; set; }
 
         bool DefaultHideCost { get; set; }
 
@@ -28,14 +44,24 @@ namespace Zametek.Contract.ProjectPlan
 
         void SetProjectTitle(string filename);
 
+        void SetProjectId(Guid projectId);
+
         void SetProjectDirectory(string filename);
 
-        ArrowGraphSettingsModel DefaultArrowGraphSettings { get; }
+        void SetProjectScenarioTitle(string name);
+
+        void SetProjectScenarioId(Guid scenarioId);
+
+        GraphSettingsModel DefaultGraphSettings { get; }
 
         ResourceSettingsModel DefaultResourceSettings { get; }
 
         WorkStreamSettingsModel DefaultWorkStreamSettings { get; }
 
-        void Reset();
+        HolidaySettingsModel DefaultHolidaySettings { get; }
+
+        void ResetProject();
+
+        void ResetProjectScenario();
     }
 }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
@@ -10,44 +10,47 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="TestFiles\test-a_v0_3_2.zpp" />
-    <None Remove="TestFiles\test-a_v0_4_0.zpp" />
-    <None Remove="TestFiles\test-c_v0_4_1.zpp" />
-    <None Remove="TestFiles\test-c_v0_4_2.zpp" />
     <None Remove="TestFiles\test_v0_1_0.zpp" />
     <None Remove="TestFiles\test_v0_2_0.zpp" />
     <None Remove="TestFiles\test_v0_2_1.zpp" />
     <None Remove="TestFiles\test_v0_3_0.zpp" />
     <None Remove="TestFiles\test_v0_3_1.zpp" />
     <None Remove="TestFiles\test_v0_3_2.zpp" />
+    <None Remove="TestFiles\test_v0_6_0.zpp" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="TestFiles\test-a_v0_3_2.zpp">
+    <Content Include="TestFiles\test_v0_3_2a.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\test-b_v0_4_1.zpp">
+    <Content Include="TestFiles\test_v0_4_1b.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\test-b_v0_4_0.zpp">
+    <Content Include="TestFiles\test_v0_4_0b.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\test-a_v0_4_0.zpp">
+    <Content Include="TestFiles\test_v0_4_0a.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\test-c_v0_4_1.zpp">
+    <Content Include="TestFiles\test_v0_4_1c.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\test-d_v0_4_2.zpp">
+    <Content Include="TestFiles\test_v0_4_2d.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\test-d_v0_4_4.zpp">
+    <Content Include="TestFiles\test_v0_5_0a.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\test-d_v0_4_3.zpp">
+    <Content Include="TestFiles\test_v0_5_0.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\test-c_v0_4_2.zpp">
+    <Content Include="TestFiles\test_v0_4_4d.zpp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestFiles\test_v0_4_3d.zpp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestFiles\test_v0_4_2c.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="TestFiles\test_v0_1_0.zpp">
@@ -68,17 +71,20 @@
     <Content Include="TestFiles\test_v0_3_2.zpp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="TestFiles\test_v0_6_0.zpp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageReference Include="Shouldly" Version="4.3.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="6.0.4">
+    <PackageReference Include="coverlet.collector" Version="8.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

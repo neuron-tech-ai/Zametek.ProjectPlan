@@ -141,11 +141,29 @@
   <data name="Label_AddManagedResource" xml:space="preserve">
     <value>Add</value>
   </data>
+  <data name="Label_AddManagedHoliday" xml:space="preserve">
+    <value>Add</value>
+  </data>
   <data name="Label_AddManagedWorkStream" xml:space="preserve">
     <value>Add</value>
   </data>
   <data name="Label_AddMilestone" xml:space="preserve">
     <value>Milestone</value>
+  </data>
+  <data name="Label_DuplicateManagedActivity" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Label_DuplicateManagedActivitySeverity" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Label_DuplicateManagedHoliday" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Label_DuplicateManagedResource" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Label_DuplicateManagedWorkStream" xml:space="preserve">
+    <value>Duplicate</value>
   </data>
   <data name="Label_AllocatedToResources" xml:space="preserve">
     <value>Allocated to Resources</value>
@@ -157,7 +175,7 @@
     <value>projectplan.net</value>
   </data>
   <data name="Label_AppVersion" xml:space="preserve">
-    <value>0.9.2</value>
+    <value>0.9.3-rc.1</value>
   </data>
   <data name="Label_Author" xml:space="preserve">
     <value>R. M. Bennett-Lovsey</value>
@@ -175,7 +193,7 @@
     <value>Color</value>
   </data>
   <data name="Label_Copyright" xml:space="preserve">
-    <value>Copyright (c) 2025</value>
+    <value>Copyright (c) 2026</value>
   </data>
   <data name="Label_CriticalityRisk" xml:space="preserve">
     <value>Criticality Risk:</value>
@@ -204,13 +222,16 @@
   <data name="Label_DeleteColumn" xml:space="preserve">
     <value>Delete</value>
   </data>
-  <data name="Label_DeleteManagedActivity" xml:space="preserve">
+  <data name="Label_DeleteManagedActivities" xml:space="preserve">
     <value>Delete</value>
   </data>
   <data name="Label_DeleteManagedActivitySeverities" xml:space="preserve">
     <value>Delete</value>
   </data>
   <data name="Label_DeleteManagedResources" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Label_DeleteManagedHolidays" xml:space="preserve">
     <value>Delete</value>
   </data>
   <data name="Label_DeleteManagedWorkStreams" xml:space="preserve">
@@ -240,7 +261,7 @@
   <data name="Label_EarliestStartTime" xml:space="preserve">
     <value>EST</value>
   </data>
-  <data name="Label_Efficiency" xml:space="preserve">
+  <data name="Label_EffortEfficiency" xml:space="preserve">
     <value>Efficiency:</value>
   </data>
   <data name="Label_Effort" xml:space="preserve">
@@ -471,7 +492,7 @@
   <data name="Label_Version" xml:space="preserve">
     <value>Version</value>
   </data>
-  <data name="Label_EditManagedActivity" xml:space="preserve">
+  <data name="Label_EditManagedActivities" xml:space="preserve">
     <value>Edit</value>
   </data>
   <data name="Label_On" xml:space="preserve">
@@ -483,7 +504,13 @@
   <data name="Label_IsIsolated" xml:space="preserve">
     <value>Isolated</value>
   </data>
-  <data name="Label_EditManagedResource" xml:space="preserve">
+  <data name="Label_EditManagedResources" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Label_EditManagedHoliday" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Label_EditManagedWorkStreams" xml:space="preserve">
     <value>Edit</value>
   </data>
   <data name="Label_ShowNames" xml:space="preserve">
@@ -560,5 +587,95 @@
   </data>
   <data name="Label_ShowSlack" xml:space="preserve">
     <value>Show Slack</value>
+  </data>
+  <data name="Label_ShowAllConnections" xml:space="preserve">
+    <value>Show All Connections</value>
+  </data>
+  <data name="Label_RootNode" xml:space="preserve">
+    <value>Root</value>
+  </data>
+  <data name="Label_SelectManagedScenario" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="Label_BaseNode" xml:space="preserve">
+    <value>Base</value>
+  </data>
+  <data name="Label_AddTag" xml:space="preserve">
+    <value>Add Tag</value>
+  </data>
+  <data name="Label_DeleteTag" xml:space="preserve">
+    <value>Delete Tag</value>
+  </data>
+  <data name="Label_EmptyNode" xml:space="preserve">
+    <value>Empty</value>
+  </data>
+  <data name="Label_NewScenario" xml:space="preserve">
+    <value>New Scenario</value>
+  </data>
+  <data name="Label_NewScenarioFolder" xml:space="preserve">
+    <value>New Folder</value>
+  </data>
+  <data name="Label_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Label_NewName" xml:space="preserve">
+    <value>New Name</value>
+  </data>
+  <data name="Label_RenameNode" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Label_DeleteNode" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Label_CutNode" xml:space="preserve">
+    <value>Cut</value>
+  </data>
+  <data name="Label_CopyNode" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Label_PasteNode" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Label_UnknownNode" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Label_TrackedMetricXAxis" xml:space="preserve">
+    <value>X Axis Metric</value>
+  </data>
+  <data name="Label_TrackedMetricYAxis" xml:space="preserve">
+    <value>Y Axis Metric</value>
+  </data>
+  <data name="Label_CurveFittingType" xml:space="preserve">
+    <value>Curve Fitting</value>
+  </data>
+  <data name="Label_DuplicateNode" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Label_HolidayName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Label_HolidayNotes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Label_HolidayRecurrencePatternDisplay" xml:space="preserve">
+    <value>Non-Working Days</value>
+  </data>
+  <data name="Label_InsertManagedActivity" xml:space="preserve">
+    <value>Insert</value>
+  </data>
+  <data name="Label_HolidayStartDate" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="Label_RenumberActivities" xml:space="preserve">
+    <value>Renumber</value>
+  </data>
+  <data name="Label_RenumberWorkStreams" xml:space="preserve">
+    <value>Renumber</value>
+  </data>
+  <data name="Label_RenumberResources" xml:space="preserve">
+    <value>Renumber</value>
+  </data>
+  <data name="Label_AllocationOrder" xml:space="preserve">
+    <value>Allocation Order</value>
   </data>
 </root>

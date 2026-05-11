@@ -5,13 +5,13 @@
     {
         public string Version { get; init; } = string.Empty;
 
-        public string ProjectPlanDirectory { get; init; } = string.Empty;
+        public string ProjectDirectory { get; init; } = string.Empty;
 
         public bool DefaultShowDates { get; init; } = false;
 
         public bool DefaultUseClassicDates { get; init; } = false;
 
-        public bool DefaultUseBusinessDays { get; init; } = true;
+        public NonWorkingDayMode DefaultNonWorkingDayMode { get; init; } = default;
 
         public bool DefaultHideCost { get; init; } = false;
 

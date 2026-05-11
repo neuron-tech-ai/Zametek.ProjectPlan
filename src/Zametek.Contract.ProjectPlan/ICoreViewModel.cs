@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Zametek.Common.ProjectPlan;
 using Zametek.Maths.Graphs;
 
@@ -7,13 +7,11 @@ namespace Zametek.Contract.ProjectPlan
     public interface ICoreViewModel
         : IKillSubscriptions, IDisposable
     {
-        string ProjectTitle { get; }
-
         bool IsBusy { get; }
 
         ReadyToCompile IsReadyToCompile { get; }
 
-        bool IsProjectUpdated { get; set; }
+        bool IsProjectScenarioUpdated { get; set; }
 
         bool HasStaleOutputs { get; set; }
 
@@ -21,13 +19,15 @@ namespace Zametek.Contract.ProjectPlan
 
         DateTimeOffset Today { get; set; }
 
-        IDisplaySettingsViewModel DisplaySettingsViewModel { get; }
+        string ProjectFinish { get; }
+
+        IProjectScenarioDisplaySettingsViewModel DisplaySettingsViewModel { get; }
 
         bool DefaultShowDates { get; set; }
 
         bool DefaultUseClassicDates { get; set; }
 
-        bool DefaultUseBusinessDays { get; set; }
+        NonWorkingDayMode DefaultNonWorkingDayMode { get; set; }
 
         bool DefaultHideCost { get; set; }
 
@@ -39,13 +39,33 @@ namespace Zametek.Contract.ProjectPlan
 
         BaseTheme BaseTheme { get; set; }
 
+        IReadOnlyList<IManagedActivityViewModel> RawActivities { get; }
+
         ReadOnlyObservableCollection<IManagedActivityViewModel> Activities { get; }
 
-        ArrowGraphSettingsModel ArrowGraphSettings { get; set; }
+        ObservableCollection<IManagedActivityViewModel> OrderableActivities { get; }
+
+        GraphSettingsModel GraphSettings { get; set; }
 
         ResourceSettingsModel ResourceSettings { get; set; }
 
         WorkStreamSettingsModel WorkStreamSettings { get; set; }
+
+        HolidaySettingsModel HolidaySettings { get; set; }
+
+        MetricsModel Metrics { get; }
+
+        RisksModel RiskMetrics { get; }
+
+        CostsModel CostMetrics { get; }
+
+        BillingsModel BillingMetrics { get; }
+
+        MarginsModel MarginMetrics { get; }
+
+        EffortsModel EffortMetrics { get; }
+
+        NetworkModel NetworkMetrics { get; }
 
         bool HasActivities { get; }
 
@@ -61,31 +81,35 @@ namespace Zametek.Contract.ProjectPlan
 
         ArrowGraphModel ArrowGraph { get; }
 
+        VertexGraphModel VertexGraph { get; }
+
         ResourceSeriesSetModel ResourceSeriesSet { get; }
 
         TrackingSeriesSetModel TrackingSeriesSet { get; }
-
-        int? CyclomaticComplexity { get; }
-
-        int? Duration { get; }
 
         int TrackerIndex { get; set; }
 
         ReadyToRevise IsReadyToReviseTrackers { get; set; }
 
-        ReadyToRevise IsReadyToReviseSettings { get; set; }
+        int GetNextActivityId();
+
+        ProjectScenarioModel CreateEmptyProjectScenario();
 
         void ClearSettings();
 
-        void ResetProject();
+        void ResetProjectScenario();
 
-        void ProcessProjectImport(ProjectImportModel projectImportModel);
+        ProjectScenarioImportModel ImportProjectScenarioFile(string filename);
 
-        void ProcessProjectPlan(ProjectPlanModel projectPlanModel);
+        void ExportProjectScenarioFile(ProjectScenarioModel projectScenarioModel, ResourceSeriesSetModel resourceSeriesSetModel, TrackingSeriesSetModel trackingSeriesSetModel, bool showDates, string filename);
 
-        ProjectPlanModel BuildProjectPlan();
+        void ProcessProjectScenarioImport(ProjectScenarioImportModel projectScenarioImportModel, Guid projectScenarioId, string projectScenarioTitle);
 
-        int AddManagedActivity();
+        void ProcessProjectScenario(ProjectScenarioModel projectScenarioModel, Guid projectScenarioId, string projectScenarioTitle);
+
+        ProjectScenarioModel BuildProjectScenario();
+
+        int AddManagedActivity(int displayOrder);
 
         void AddManagedActivities(IEnumerable<DependentActivityModel> dependentActivityModels);
 
@@ -95,6 +119,14 @@ namespace Zametek.Contract.ProjectPlan
 
         void AddMilestone(IEnumerable<int> dependentActivities);
 
+        void UpdateActivityDisplayOrders();
+
+        void UpdateManagedActivityIds(IEnumerable<(int OldId, int NewId)> idMaps);
+
+        void UpdateManagedResourceIds(IEnumerable<(int OldId, int NewId)> idMaps);
+
+        void UpdateManagedWorkStreamIds(IEnumerable<(int OldId, int NewId)> idMaps);
+
         void ClearManagedActivities();
 
         void RunCompile();
@@ -103,12 +135,18 @@ namespace Zametek.Contract.ProjectPlan
 
         void RunTransitiveReduction();
 
-        void BuildCyclomaticComplexity();
-
         void BuildArrowGraph();
+
+        void BuildVertexGraph();
 
         void BuildResourceSeriesSet();
 
         void BuildTrackingSeriesSet();
+
+        void BuildNetworkMetrics();
+
+        void BuildRiskMetrics();
+
+        void BuildFinancialMetrics();
     }
 }

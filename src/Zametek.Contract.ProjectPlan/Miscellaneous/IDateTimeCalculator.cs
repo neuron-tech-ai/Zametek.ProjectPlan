@@ -1,23 +1,26 @@
-﻿using System.Reflection.Emit;
-using Zametek.Common.ProjectPlan;
+﻿using Zametek.Common.ProjectPlan;
 
 namespace Zametek.Contract.ProjectPlan
 {
     public interface IDateTimeCalculator
     {
-        DateTimeCalculatorMode CalculatorMode { get; set; }
+        NonWorkingDayMode NonWorkingDayMode { get; set; }
 
         DateTimeDisplayMode DisplayMode { get; set; }
 
-        int DaysPerWeek { get; }
+        DateTimeOffset ProjectStart { get; set; }
 
-        int? CalculateTime(DateTimeOffset projectStart, DateTimeOffset? input);
+        DateTimeOffset NonWorkingDaysStart { get; }
 
-        int? CalculateTime(int? input);
+        DateTimeOffset NonWorkingDaysFinish { get; }
 
-        DateTimeOffset? CalculateDateTime(DateTimeOffset projectStart, int? input);
+        List<HolidayModel> NonWorkingDayCalendarEvents { get; }
 
-        DateTimeOffset? CalculateDateTime(DateTimeOffset projectStart, DateTimeOffset? input);
+        void SetNonWorkingDayCalendarEvents(List<HolidayModel> nonWorkingDayCalendarEvents);
+
+        DateTimeOffset GetLocalNow();
+
+        DateTimeOffset GetLocal(DateTime dateTime);
 
         (int?, DateTimeOffset?) CalculateTimeAndDateTime(DateTimeOffset projectStart, int? input);
 

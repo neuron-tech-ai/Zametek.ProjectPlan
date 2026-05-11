@@ -1,4 +1,5 @@
-﻿using Avalonia;
+using Avalonia;
+using Avalonia.Threading;
 using ReactiveUI;
 using ScottPlot;
 using ScottPlot.Avalonia;
@@ -21,7 +22,7 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
 
         private static readonly IList<IFileFilter> s_ExportFileFilters =
             [
@@ -79,6 +80,7 @@ namespace Zametek.ViewModel.ProjectPlan
         private readonly ISettingService m_SettingService;
         private readonly IDialogService m_DialogService;
         private readonly IDateTimeCalculator m_DateTimeCalculator;
+        private readonly IScottPlotImageExporter m_ScottPlotImageExporter;
 
         private readonly IDisposable? m_BuildResourceChartPlotModelSub;
 
@@ -94,23 +96,32 @@ namespace Zametek.ViewModel.ProjectPlan
             ICoreViewModel coreViewModel,
             ISettingService settingService,
             IDialogService dialogService,
-            IDateTimeCalculator dateTimeCalculator)
+            IDateTimeCalculator dateTimeCalculator,
+            IScottPlotImageExporter scottPlotImageExporter)
         {
             ArgumentNullException.ThrowIfNull(coreViewModel);
             ArgumentNullException.ThrowIfNull(settingService);
             ArgumentNullException.ThrowIfNull(dialogService);
             ArgumentNullException.ThrowIfNull(dateTimeCalculator);
-            m_Lock = new object();
+            ArgumentNullException.ThrowIfNull(scottPlotImageExporter);
+            m_Lock = new();
             m_CoreViewModel = coreViewModel;
             m_SettingService = settingService;
             m_DialogService = dialogService;
             m_DateTimeCalculator = dateTimeCalculator;
+            m_ScottPlotImageExporter = scottPlotImageExporter;
             m_ResourceChartPlotModel = new AvaPlot();
+
+            ResetResourceChartCommand = ReactiveCommand.Create(ResetResourceChart);
 
             {
                 ReactiveCommand<Unit, Unit> saveResourceChartImageFileCommand = ReactiveCommand.CreateFromTask(SaveResourceChartImageFileAsync);
                 SaveResourceChartImageFileCommand = saveResourceChartImageFileCommand;
             }
+
+            ChangeAllocationModeCommand = ReactiveCommand.CreateFromTask<AllocationMode>(ChangeAllocationModeAsync);
+            ChangeScheduleModeCommand = ReactiveCommand.CreateFromTask<ScheduleMode>(ChangeScheduleModeAsync);
+            ChangeDisplayStyleCommand = ReactiveCommand.CreateFromTask<DisplayStyle>(ChangeDisplayStyleAsync);
 
             m_IsBusy = this
                 .WhenAnyValue(rcm => rcm.m_CoreViewModel.IsBusy)
@@ -149,7 +160,7 @@ namespace Zametek.ViewModel.ProjectPlan
                     rcm => rcm.m_CoreViewModel.ResourceSeriesSet,
                     rcm => rcm.m_CoreViewModel.DisplaySettingsViewModel.ShowDates,
                     rcm => rcm.m_CoreViewModel.DisplaySettingsViewModel.UseClassicDates,
-                    rcm => rcm.m_CoreViewModel.DisplaySettingsViewModel.UseBusinessDays,
+                    rcm => rcm.m_CoreViewModel.DisplaySettingsViewModel.NonWorkingDayMode,
                     rcm => rcm.m_CoreViewModel.ProjectStart,
                     rcm => rcm.m_CoreViewModel.Today,
                     rcm => rcm.AllocationMode,
@@ -158,8 +169,8 @@ namespace Zametek.ViewModel.ProjectPlan
                     rcm => rcm.ShowToday,
                     rcm => rcm.ShowMilestones,
                     rcm => rcm.m_CoreViewModel.BaseTheme,
-                    (a, b, c, d, e, f, g, h, i, j, k, l) => (a, b, c, d, e, f, g, h, i, j, k, l)) // Do this as a workaround because WhenAnyValue cannot handle this many individual inputs.
-                .ObserveOn(RxApp.MainThreadScheduler)
+                    (x, _, _, _, _, _, _, _, _, _, _, _) => x) // Do this as a workaround because WhenAnyValue cannot handle this many individual inputs.
+                .ObserveOn(RxApp.TaskpoolScheduler)
                 .Subscribe(async _ => await BuildResourceChartPlotModelAsync());
 
             Id = Resource.ProjectPlan.Titles.Title_ResourceChartView;
@@ -179,7 +190,10 @@ namespace Zametek.ViewModel.ProjectPlan
             }
             private set
             {
-                lock (m_Lock) this.RaiseAndSetIfChanged(ref m_ResourceChartPlotModel, value);
+                lock (m_Lock)
+                {
+                    this.RaiseAndSetIfChanged(ref m_ResourceChartPlotModel, value);
+                }
             }
         }
 
@@ -193,10 +207,13 @@ namespace Zametek.ViewModel.ProjectPlan
         {
             try
             {
-                lock (m_Lock)
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    BuildResourceChartPlotModel();
-                }
+                    lock (m_Lock)
+                    {
+                        BuildResourceChartPlotModel();
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -233,10 +250,10 @@ namespace Zametek.ViewModel.ProjectPlan
 
             allocationFunction = allocationMode switch
             {
-                AllocationMode.Activity => (ResourceScheduleModel model) => model.ActivityAllocation,
-                AllocationMode.Cost => (ResourceScheduleModel model) => model.CostAllocation,
-                AllocationMode.Billing => (ResourceScheduleModel model) => model.BillingAllocation,
-                AllocationMode.Effort => (ResourceScheduleModel model) => model.EffortAllocation,
+                AllocationMode.Activity => model => model.ActivityAllocation,
+                AllocationMode.Cost => model => model.CostAllocation,
+                AllocationMode.Billing => model => model.BillingAllocation,
+                AllocationMode.Effort => model => model.EffortAllocation,
                 _ => throw new ArgumentOutOfRangeException(nameof(allocationMode), @$"{Resource.ProjectPlan.Messages.Message_UnknownAllocationMode} {allocationMode}"),
             };
 
@@ -246,9 +263,9 @@ namespace Zametek.ViewModel.ProjectPlan
 
             scheduleFunction = scheduleMode switch
             {
-                ScheduleMode.Combined => (ResourceSeriesSetModel model) => model.Combined,
-                ScheduleMode.Scheduled => (ResourceSeriesSetModel model) => model.Scheduled,
-                ScheduleMode.Unscheduled => (ResourceSeriesSetModel model) => model.Unscheduled,
+                ScheduleMode.Combined => model => model.Combined,
+                ScheduleMode.Scheduled => model => model.Scheduled,
+                ScheduleMode.Unscheduled => model => model.Unscheduled,
                 _ => throw new ArgumentOutOfRangeException(nameof(scheduleMode), @$"{Resource.ProjectPlan.Messages.Message_UnknownScheduleMode} {scheduleMode}"),
             };
 
@@ -511,6 +528,56 @@ namespace Zametek.ViewModel.ProjectPlan
             return yAxis;
         }
 
+        private void ResetResourceChart()
+        {
+            ResourceChartPlotModel.Plot.Axes.AutoScale();
+        }
+
+        private async Task ChangeAllocationModeAsync(AllocationMode allocationMode)
+        {
+            try
+            {
+                AllocationMode = allocationMode;
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        private async Task ChangeScheduleModeAsync(ScheduleMode scheduleMode)
+        {
+            try
+            {
+                ScheduleMode = scheduleMode;
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
+        private async Task ChangeDisplayStyleAsync(DisplayStyle displayStyle)
+        {
+            try
+            {
+                DisplayStyle = displayStyle;
+            }
+            catch (Exception ex)
+            {
+                await m_DialogService.ShowErrorAsync(
+                    Resource.ProjectPlan.Titles.Title_Error,
+                    string.Empty,
+                    ex.Message);
+            }
+        }
+
         private async Task SaveResourceChartImageFileAsync()
         {
             try
@@ -602,7 +669,15 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
+        public ICommand ResetResourceChartCommand { get; }
+
         public ICommand SaveResourceChartImageFileCommand { get; }
+
+        public ICommand ChangeAllocationModeCommand { get; }
+
+        public ICommand ChangeScheduleModeCommand { get; }
+
+        public ICommand ChangeDisplayStyleCommand { get; }
 
         public async Task SaveResourceChartImageFileAsync(
             string? filename,
@@ -620,38 +695,7 @@ namespace Zametek.ViewModel.ProjectPlan
             {
                 try
                 {
-                    string fileExtension = Path.GetExtension(filename);
-
-                    fileExtension.ValueSwitchOn()
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImageJpegFileExtension}", _ =>
-                        {
-                            ResourceChartPlotModel.Plot.Save(
-                                filename, width, height, ImageFormats.FromFilename(filename), 100);
-                        })
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImagePngFileExtension}", _ =>
-                        {
-                            ResourceChartPlotModel.Plot.Save(
-                                filename, width, height, ImageFormats.FromFilename(filename), 100);
-                        })
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImageBmpFileExtension}", _ =>
-                        {
-                            ResourceChartPlotModel.Plot.Save(
-                                filename, width, height, ImageFormats.FromFilename(filename), 100);
-                        })
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImageWebpFileExtension}", _ =>
-                        {
-                            ResourceChartPlotModel.Plot.Save(
-                                filename, width, height, ImageFormats.FromFilename(filename), 100);
-                        })
-                        .Case($".{Resource.ProjectPlan.Filters.Filter_ImageSvgFileExtension}", _ =>
-                        {
-                            ResourceChartPlotModel.Plot.Save(
-                                filename, width, height, ImageFormats.FromFilename(filename), 100);
-                        })
-                        //.Case($".{Resource.ProjectPlan.Filters.Filter_PdfFileExtension}", _ =>
-                        //{
-                        //})
-                        .Default(_ => throw new ArgumentOutOfRangeException(nameof(filename), @$"{Resource.ProjectPlan.Messages.Message_UnableToSaveFile} {filename}"));
+                    await m_ScottPlotImageExporter.SavePlotImageAsync(ResourceChartPlotModel.Plot, filename, width, height);
                 }
                 catch (Exception ex)
                 {
@@ -689,18 +733,10 @@ namespace Zametek.ViewModel.ProjectPlan
 
             plotModel ??= new AvaPlot();
 
-            // Clear existing menu items.
+            // Clear ScottPlot's built-in menu entirely — Save As and Reset are
+            // exposed through the Avalonia ContextMenu on the ContentControl instead,
+            // preventing the double-menu that occurs when both menus are open simultaneously.
             plotModel.Menu?.Clear();
-
-            // Add menu items with custom actions.
-            plotModel.Menu?.Add(Resource.ProjectPlan.Menus.Menu_SaveAs, (plot) =>
-            {
-                SaveResourceChartImageFileCommand.Execute(null);
-            });
-            plotModel.Menu?.Add(Resource.ProjectPlan.Menus.Menu_Reset, (plot) =>
-            {
-                plot.Axes.AutoScale();
-            });
 
             //plotModel.Plot.Axes.AutoScale();
             ResourceChartPlotModel = plotModel;
@@ -730,7 +766,6 @@ namespace Zametek.ViewModel.ProjectPlan
 
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects).
                 KillSubscriptions();
                 m_IsBusy?.Dispose();
                 m_HasStaleOutputs?.Dispose();
@@ -741,9 +776,6 @@ namespace Zametek.ViewModel.ProjectPlan
                 m_ShowToday?.Dispose();
                 m_ShowMilestones?.Dispose();
             }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
 
             m_Disposed = true;
         }

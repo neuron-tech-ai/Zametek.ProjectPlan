@@ -1,4 +1,4 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Zametek.Common.ProjectPlan;
@@ -11,7 +11,7 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
         private readonly ICoreViewModel m_CoreViewModel;
         private readonly Dictionary<int, ActivityTrackerModel> m_ActivityTrackerLookup;
 
@@ -29,7 +29,7 @@ namespace Zametek.ViewModel.ProjectPlan
             IEnumerable<ActivityTrackerModel> trackers)
         {
             ArgumentNullException.ThrowIfNull(coreViewModel);
-            m_Lock = new object();
+            m_Lock = new();
             m_CoreViewModel = coreViewModel;
             ActivityId = activityId;
             m_ActivityTrackerLookup = [];
@@ -38,7 +38,7 @@ namespace Zametek.ViewModel.ProjectPlan
             {
                 if (tracker.ActivityId == ActivityId)
                 {
-                    m_ActivityTrackerLookup.TryAdd(tracker.Time, tracker);
+                    m_ActivityTrackerLookup[tracker.Time] = tracker;
                 }
             }
 
@@ -90,7 +90,7 @@ namespace Zametek.ViewModel.ProjectPlan
                         ActivityId = ActivityId,
                         PercentageComplete = value.GetValueOrDefault(),
                     };
-                    m_ActivityTrackerLookup.TryAdd(indexOffset, tracker);
+                    m_ActivityTrackerLookup[indexOffset] = tracker;
                 }
             }
         }
@@ -212,6 +212,16 @@ namespace Zametek.ViewModel.ProjectPlan
             this.RaisePropertyChanged(nameof(LastTrackerIndex));
             this.RaisePropertyChanged(nameof(LastTrackerValue));
             this.RaisePropertyChanged(nameof(SearchSymbol));
+        }
+
+        public List<ActivityTrackerModel> CloneTrackers()
+        {
+            lock (m_Lock)
+            {
+                return [.. m_ActivityTrackerLookup.Values
+                    .OrderBy(x => x.Time)
+                    .Select(selector => selector with { })];
+            }
         }
 
         public int? Day00
@@ -394,12 +404,8 @@ namespace Zametek.ViewModel.ProjectPlan
 
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects).
                 m_DaysSub?.Dispose();
             }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
 
             m_Disposed = true;
         }

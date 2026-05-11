@@ -10,6 +10,9 @@ namespace Zametek.Common.ProjectPlan
         public string Name { get; init; } = string.Empty;
         public bool IsNameEdited { get; init; } = false;
 
+        public string Notes { get; init; } = string.Empty;
+        public bool IsNotesEdited { get; init; } = false;
+
         public bool IsExplicitTarget { get; init; }
         public bool IsIsExplicitTargetEdited { get; init; } = false;
 
@@ -30,6 +33,9 @@ namespace Zametek.Common.ProjectPlan
 
         public double FixedBilling { get; init; }
         public bool IsFixedBillingEdited { get; init; } = false;
+
+        public ColorFormatModel ColorFormat { get; init; } = new ColorFormatModel();
+        public bool IsColorFormatActive { get; init; } = false;
 
         public List<int> InterActivityPhases { get; init; } = [];
         public bool IsInterActivityPhasesEdited { get; init; } = false;

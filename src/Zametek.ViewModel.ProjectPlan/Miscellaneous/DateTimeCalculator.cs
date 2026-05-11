@@ -1,4 +1,6 @@
-﻿using FluentDateTimeOffset;
+﻿using Ical.Net;
+using Ical.Net.CalendarComponents;
+using Ical.Net.DataTypes;
 using ReactiveUI;
 using System.Globalization;
 using Zametek.Common.ProjectPlan;
@@ -11,7 +13,8 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
+        private readonly TimeProvider m_TimeProvider;
 
         private static readonly string s_DateFormat = DateTimeFormatInfo.CurrentInfo.ShortDatePattern;
 
@@ -19,15 +22,29 @@ namespace Zametek.ViewModel.ProjectPlan
 
         private static readonly string s_DateTimeOffsetFormat = s_DateTimeFormat + (DateTimeFormatInfo.CurrentInfo.LongTimePattern.Contains('z') ? string.Empty : " zzz");
 
+        private static readonly HolidayModel s_WeekendCalendarEvent = new()
+        {
+            Id = 1,
+            RecurrencePattern = "FREQ=WEEKLY;BYDAY=SA,SU",
+        };
+
+        private readonly List<HolidayModel> m_CustomCalendarNonWorkingCalendarEvents;
+
+        private readonly HashSet<DateOnly> m_NonWorkingDays;
+        private const int c_NonWorkingDaysSearchBuffer = 30;
+
         #endregion
 
         #region Ctors
 
-        public DateTimeCalculator()
+        public DateTimeCalculator(TimeProvider timeProvider)
         {
-            m_Lock = new object();
+            m_Lock = new();
+            m_TimeProvider = timeProvider;
             m_AddDaysFunc = AddAllDays;
             m_CountDaysFunc = CountAllDays;
+            m_CustomCalendarNonWorkingCalendarEvents = [];
+            m_NonWorkingDays = [];
 
             m_DisplayEarliestStartDateFunc = DisplayDefaultEarliestStartDate;
             m_DisplayLatestStartDateFunc = DisplayDefaultLatestStartDate;
@@ -36,7 +53,7 @@ namespace Zametek.ViewModel.ProjectPlan
             m_MaximumLatestFinishDateInFunc = DefaultMaximumLatestFinishDateIn;
             m_MaximumLatestFinishDateOutFunc = DefaultMaximumLatestFinishDateOut;
 
-            CalculatorMode = DateTimeCalculatorMode.AllDays;
+            NonWorkingDayMode = NonWorkingDayMode.None;
             DisplayMode = DateTimeDisplayMode.Default;
         }
 
@@ -50,54 +67,248 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public static string DateTimeOffsetFormat => s_DateTimeOffsetFormat;
 
+        public List<HolidayModel> NonWorkingDayCalendarEvents => [.. m_CustomCalendarNonWorkingCalendarEvents];
+
         #endregion
 
         #region Private Methods
 
-        private static DateTimeOffset AddAllDays(
+        private DateTimeOffset AddAllDays(
             DateTimeOffset current,
             int days)
         {
-            return current.AddDays(days);
+            lock (m_Lock)
+            {
+                return AddNonWorkingDays(current, days, []);
+            }
         }
 
-        private static DateTimeOffset AddBusinessDays(
+        private int CountAllDays(
+            DateTimeOffset current,
+            DateTimeOffset toCompareWith)
+        {
+            lock (m_Lock)
+            {
+                return CountNonWorkingDays(current, toCompareWith, []);
+            }
+        }
+
+        private DateTimeOffset AddBusinessDays(
             DateTimeOffset current,
             int days)
         {
-            return current.AddBusinessDays(days);
+            lock (m_Lock)
+            {
+                return AddNonWorkingDays(current, days, [s_WeekendCalendarEvent]);
+            }
         }
 
-        private static int CountAllDays(
+        private int CountBusinessDays(
             DateTimeOffset current,
             DateTimeOffset toCompareWith)
         {
-            if (current.IsAfter(toCompareWith))
+            lock (m_Lock)
             {
-                return -CountAllDays(toCompareWith, current);
+                return CountNonWorkingDays(current, toCompareWith, [s_WeekendCalendarEvent]);
             }
-            return Convert.ToInt32((toCompareWith - current).TotalDays);
         }
 
-        private static int CountBusinessDays(
+        private DateTimeOffset AddCustomCalendarDays(
+            DateTimeOffset current,
+            int days)
+        {
+            lock (m_Lock)
+            {
+                return AddNonWorkingDays(current, days, m_CustomCalendarNonWorkingCalendarEvents);
+            }
+        }
+
+        private int CountCustomCalendarDays(
             DateTimeOffset current,
             DateTimeOffset toCompareWith)
         {
-            if (current.IsAfter(toCompareWith))
+            lock (m_Lock)
             {
-                return -CountBusinessDays(toCompareWith, current);
+                return CountNonWorkingDays(current, toCompareWith, m_CustomCalendarNonWorkingCalendarEvents);
             }
-            int count = 0;
-            while (current.IsBefore(toCompareWith))
+        }
+
+        private DateTimeOffset AddNonWorkingDays(
+            DateTimeOffset current,
+            int days,
+            List<HolidayModel> nonWorkingDayCalendarEvents)
+        {
+            lock (m_Lock)
             {
-                current = current.AddDays(1);
-                if (current.DayOfWeek != DayOfWeek.Saturday
-                    && current.DayOfWeek != DayOfWeek.Sunday)
+                AppendNonWorkingDays(current.Date, days + c_NonWorkingDaysSearchBuffer, nonWorkingDayCalendarEvents);
+
+                int sign = Math.Sign(days);
+                int unsignedDays = Math.Abs(days);
+
+                int count = 0;
+                while (count < unsignedDays)
                 {
-                    count++;
+                    current = current.AddDays(sign);
+
+                    // If we have moved out of the range of already calculated non-working days,
+                    // then calculate more non-working days.
+                    if (current.IsAfterOrOn(NonWorkingDaysFinish))
+                    {
+                        AppendNonWorkingDays(
+                            current.Date,
+                            c_NonWorkingDaysSearchBuffer,
+                            nonWorkingDayCalendarEvents);
+                    }
+
+                    if (!m_NonWorkingDays.Contains(DateOnly.FromDateTime(current.Date)))
+                    {
+                        count += 1;
+                    }
+                }
+                return current;
+            }
+        }
+
+        private int CountNonWorkingDays(
+            DateTimeOffset current,
+            DateTimeOffset toCompareWith,
+            List<HolidayModel> nonWorkingDayCalendarEvents)
+        {
+            lock (m_Lock)
+            {
+                if (current.IsAfter(toCompareWith))
+                {
+                    return -CountNonWorkingDays(toCompareWith, current, nonWorkingDayCalendarEvents);
+                }
+
+                AppendNonWorkingDays(
+                    current.Date,
+                    toCompareWith.Date,
+                    nonWorkingDayCalendarEvents: nonWorkingDayCalendarEvents);
+
+                int count = 0;
+                while (current.IsBefore(toCompareWith))
+                {
+                    current = current.AddDays(1);
+
+                    if (!m_NonWorkingDays.Contains(DateOnly.FromDateTime(current.Date)))
+                    {
+                        count += 1;
+                    }
+                }
+                return count;
+            }
+        }
+
+        private void ClearNonWorkingDays()
+        {
+            lock (m_Lock)
+            {
+                m_NonWorkingDays.Clear();
+                NonWorkingDaysStart = ProjectStart;
+                NonWorkingDaysFinish = ProjectStart;
+            }
+        }
+
+        private void AppendNonWorkingDays(
+            DateTime startDateTime,
+            DateTime finishDateTime,
+            List<HolidayModel> nonWorkingDayCalendarEvents)
+        {
+            lock (m_Lock)
+            {
+                if (startDateTime.IsAfterOrOn(finishDateTime))
+                {
+                    (startDateTime, finishDateTime) = (finishDateTime, startDateTime);
+                }
+
+                if (startDateTime.IsAfterOrOn(NonWorkingDaysStart.Date)
+                    && finishDateTime.IsBeforeOrOn(NonWorkingDaysFinish.Date))
+                {
+                    return;
+                }
+
+                DateTime bufferedStartDateTime = startDateTime.AddDays(-1).Date;
+                DateTime bufferedFinishDateTime = finishDateTime.AddDays(1).Date;
+
+                foreach (HolidayModel nonWorkingDayCalendarEvent in nonWorkingDayCalendarEvents)
+                {
+                    HashSet<DateOnly> newNonWorkingDays = GetNonWorkingDaysFromCalendarEvents(
+                        bufferedStartDateTime,
+                        bufferedFinishDateTime,
+                        ProjectStart,
+                        nonWorkingDayCalendarEvent);
+
+                    m_NonWorkingDays.UnionWith(newNonWorkingDays);
+                }
+
+                if (startDateTime.IsBeforeOrOn(NonWorkingDaysStart.Date))
+                {
+                    NonWorkingDaysStart = GetLocal(startDateTime);
+                }
+                if (finishDateTime.IsAfterOrOn(NonWorkingDaysFinish.Date))
+                {
+                    NonWorkingDaysFinish = GetLocal(finishDateTime);
                 }
             }
-            return count;
+        }
+
+        private void AppendNonWorkingDays(
+            DateTime startDateTime,
+            int days,
+            List<HolidayModel> nonWorkingDayCalendarEvents)
+        {
+            lock (m_Lock)
+            {
+                DateTime finishDateTime = startDateTime.AddDays(days).Date;
+
+                AppendNonWorkingDays(
+                    startDateTime,
+                    finishDateTime,
+                    nonWorkingDayCalendarEvents);
+            }
+        }
+
+        private static HashSet<DateOnly> GetNonWorkingDaysFromCalendarEvents(
+            DateTime searchStartDateTime,
+            DateTime searchFinishDateTime,
+            DateTimeOffset projectStart,
+            HolidayModel nonWorkingDayCalendarEvent)
+        {
+            if (searchStartDateTime.IsAfterOrOn(searchFinishDateTime))
+            {
+                (searchStartDateTime, searchFinishDateTime) = (searchFinishDateTime, searchStartDateTime);
+            }
+
+            // CalDateTime only works with DateTimeKind.Unspecified or DateTimeKind.Utc,
+            // so we need to convert our input DateTimes to one of those kinds.
+            var searchStartCalDateTime = new CalDateTime(DateTime.SpecifyKind(searchStartDateTime, DateTimeKind.Unspecified));
+            var searchEndCalDateTime = new CalDateTime(DateTime.SpecifyKind(searchFinishDateTime, DateTimeKind.Unspecified));
+
+            CalDateTime? startDateTime = new(DateTime.SpecifyKind(projectStart.DateTime, DateTimeKind.Unspecified));
+
+            if (searchStartCalDateTime.Date.IsBeforeOrOn(startDateTime.Date))
+            {
+                startDateTime = searchStartCalDateTime;
+            }
+
+            if (nonWorkingDayCalendarEvent.StartDateTime.HasValue)
+            {
+                startDateTime = new CalDateTime(DateTime.SpecifyKind(nonWorkingDayCalendarEvent.StartDateTime.Value.DateTime, DateTimeKind.Unspecified));
+            }
+
+            var nonWorkingDaysEvent = new CalendarEvent
+            {
+                Start = startDateTime,
+                RecurrenceRules = [new RecurrencePattern(nonWorkingDayCalendarEvent.RecurrencePattern)],
+            };
+
+            List<Occurrence> occurrences = [.. nonWorkingDaysEvent
+                .GetOccurrences(searchStartCalDateTime)
+                .TakeWhileBefore(searchEndCalDateTime)];
+
+            HashSet<DateOnly> nonWorkingDays = [.. occurrences.Select(x => x.Period.StartTime.Date)];
+            return nonWorkingDays;
         }
 
         private static DateTimeOffset DisplayDefaultEarliestStartDate(
@@ -220,91 +431,20 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        #endregion
-
-        #region IDateTimeCalculator Members
-
-        private DateTimeCalculatorMode m_CalculatorMode;
-        public DateTimeCalculatorMode CalculatorMode
+        private int? CalculateTime(int? input)
         {
-            get => m_CalculatorMode;
-            set
+            lock (m_Lock)
             {
-                lock (m_Lock)
+                int? result = input;
+                if (result.HasValue && result < 0)
                 {
-                    DateTimeCalculatorMode calculatorMode = value;
-
-                    switch (calculatorMode)
-                    {
-                        case DateTimeCalculatorMode.AllDays:
-                            DaysPerWeek = 7;
-                            m_AddDaysFunc = AddAllDays;
-                            m_CountDaysFunc = CountAllDays;
-                            break;
-                        case DateTimeCalculatorMode.BusinessDays:
-                            DaysPerWeek = 5;
-                            m_AddDaysFunc = AddBusinessDays;
-                            m_CountDaysFunc = CountBusinessDays;
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException(
-                                nameof(CalculatorMode),
-                                @$"{Resource.ProjectPlan.Messages.Message_UnknownDateTimeCalculatorMode} {calculatorMode}");
-                    }
-
-                    this.RaiseAndSetIfChanged(ref m_CalculatorMode, calculatorMode);
+                    result = 0;
                 }
+                return result;
             }
         }
 
-        private DateTimeDisplayMode m_DisplayMode;
-        public DateTimeDisplayMode DisplayMode
-        {
-            get => m_DisplayMode;
-            set
-            {
-                lock (m_Lock)
-                {
-                    DateTimeDisplayMode displayMode = value;
-
-                    switch (displayMode)
-                    {
-                        case DateTimeDisplayMode.Default:
-                            m_DisplayEarliestStartDateFunc = DisplayDefaultEarliestStartDate;
-                            m_DisplayLatestStartDateFunc = DisplayDefaultLatestStartDate;
-                            m_DisplayFinishDateFunc = DisplayDefaultFinishDate;
-                            m_MaximumLatestFinishDateInFunc = DefaultMaximumLatestFinishDateIn;
-                            m_MaximumLatestFinishDateOutFunc = DefaultMaximumLatestFinishDateOut;
-                            break;
-                        case DateTimeDisplayMode.Classic:
-                            m_DisplayEarliestStartDateFunc = DisplayClassicEarliestStartDate;
-                            m_DisplayLatestStartDateFunc = DisplayClassicLatestStartDate;
-                            m_DisplayFinishDateFunc = DisplayClassicFinishDate;
-                            m_MaximumLatestFinishDateInFunc = ClassicMaximumLatestFinishDateIn;
-                            m_MaximumLatestFinishDateOutFunc = ClassicMaximumLatestFinishDateOut;
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException(
-                                nameof(DisplayMode),
-                                @$"{Resource.ProjectPlan.Messages.Message_UnknownDateTimeDisplayMode} {displayMode}");
-                    }
-
-                    this.RaiseAndSetIfChanged(ref m_DisplayMode, displayMode);
-                }
-            }
-        }
-
-        private int m_DaysPerWeek;
-        public int DaysPerWeek
-        {
-            get => m_DaysPerWeek;
-            private set
-            {
-                lock (m_Lock) this.RaiseAndSetIfChanged(ref m_DaysPerWeek, value);
-            }
-        }
-
-        public int? CalculateTime(
+        private int? CalculateTime(
             DateTimeOffset projectStart,
             DateTimeOffset? input)
         {
@@ -320,20 +460,26 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public int? CalculateTime(int? input)
+        private DateTimeOffset? CalculateDateTime(
+            DateTimeOffset projectStart,
+            DateTimeOffset? input)
         {
             lock (m_Lock)
             {
-                int? result = input;
-                if (result.HasValue && result < 0)
+                DateTimeOffset? result = input;
+                if (result.HasValue)
                 {
-                    result = 0;
+                    if (result < projectStart)
+                    {
+                        result = GetLocal(projectStart.DateTime);
+                    }
+                    result = new DateTimeOffset(result.GetValueOrDefault().Date + projectStart.TimeOfDay, projectStart.Offset);
                 }
                 return result;
             }
         }
 
-        public DateTimeOffset? CalculateDateTime(
+        private DateTimeOffset? CalculateDateTime(
             DateTimeOffset projectStart,
             int? input)
         {
@@ -349,23 +495,161 @@ namespace Zametek.ViewModel.ProjectPlan
             }
         }
 
-        public DateTimeOffset? CalculateDateTime(
-            DateTimeOffset projectStart,
-            DateTimeOffset? input)
+        #endregion
+
+        #region IDateTimeCalculator Members
+
+        private NonWorkingDayMode m_NonWorkingDayMode;
+        public NonWorkingDayMode NonWorkingDayMode
+        {
+            get => m_NonWorkingDayMode;
+            set
+            {
+                lock (m_Lock)
+                {
+                    NonWorkingDayMode nonWorkingDayMode = value;
+                    ClearNonWorkingDays();
+
+                    switch (nonWorkingDayMode)
+                    {
+                        case NonWorkingDayMode.None:
+                            {
+                                m_AddDaysFunc = AddAllDays;
+                                m_CountDaysFunc = CountAllDays;
+                            }
+                            break;
+                        case NonWorkingDayMode.Weekends:
+                            {
+                                m_AddDaysFunc = AddBusinessDays;
+                                m_CountDaysFunc = CountBusinessDays;
+                            }
+                            break;
+                        case NonWorkingDayMode.CustomCalendar:
+                            {
+                                m_AddDaysFunc = AddCustomCalendarDays;
+                                m_CountDaysFunc = CountCustomCalendarDays;
+                            }
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(
+                                nameof(NonWorkingDayMode),
+                                @$"{Resource.ProjectPlan.Messages.Message_UnknownNonWorkingDayMode} {nonWorkingDayMode}");
+                    }
+
+                    this.RaiseAndSetIfChanged(ref m_NonWorkingDayMode, nonWorkingDayMode);
+                }
+            }
+        }
+
+        private DateTimeDisplayMode m_DisplayMode;
+        public DateTimeDisplayMode DisplayMode
+        {
+            get => m_DisplayMode;
+            set
+            {
+                lock (m_Lock)
+                {
+                    DateTimeDisplayMode displayMode = value;
+                    ClearNonWorkingDays();
+
+                    switch (displayMode)
+                    {
+                        case DateTimeDisplayMode.Default:
+                            {
+                                m_DisplayEarliestStartDateFunc = DisplayDefaultEarliestStartDate;
+                                m_DisplayLatestStartDateFunc = DisplayDefaultLatestStartDate;
+                                m_DisplayFinishDateFunc = DisplayDefaultFinishDate;
+                                m_MaximumLatestFinishDateInFunc = DefaultMaximumLatestFinishDateIn;
+                                m_MaximumLatestFinishDateOutFunc = DefaultMaximumLatestFinishDateOut;
+                            }
+                            break;
+                        case DateTimeDisplayMode.Classic:
+                            {
+                                m_DisplayEarliestStartDateFunc = DisplayClassicEarliestStartDate;
+                                m_DisplayLatestStartDateFunc = DisplayClassicLatestStartDate;
+                                m_DisplayFinishDateFunc = DisplayClassicFinishDate;
+                                m_MaximumLatestFinishDateInFunc = ClassicMaximumLatestFinishDateIn;
+                                m_MaximumLatestFinishDateOutFunc = ClassicMaximumLatestFinishDateOut;
+                            }
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(
+                                nameof(DisplayMode),
+                                @$"{Resource.ProjectPlan.Messages.Message_UnknownDateTimeDisplayMode} {displayMode}");
+                    }
+
+                    this.RaiseAndSetIfChanged(ref m_DisplayMode, displayMode);
+                }
+            }
+        }
+
+        private DateTimeOffset m_ProjectStart;
+        public DateTimeOffset ProjectStart
+        {
+            get => m_ProjectStart;
+            set
+            {
+                lock (m_Lock)
+                {
+                    // Convert to local now using TimeProvider as we do not know
+                    // if the input is provided as just a datetime from XAML.
+                    m_ProjectStart = GetLocal(value.DateTime);
+                    ClearNonWorkingDays();
+                    this.RaiseAndSetIfChanged(ref m_ProjectStart, value);
+                }
+            }
+        }
+
+        private DateTimeOffset m_NonWorkingDaysStart;
+        public DateTimeOffset NonWorkingDaysStart
+        {
+            get => m_NonWorkingDaysStart;
+            private set
+            {
+                lock (m_Lock)
+                {
+                    this.RaiseAndSetIfChanged(ref m_NonWorkingDaysStart, value);
+                }
+            }
+        }
+        private DateTimeOffset m_NonWorkingDaysFinish;
+        public DateTimeOffset NonWorkingDaysFinish
+        {
+            get => m_NonWorkingDaysFinish;
+            private set
+            {
+                lock (m_Lock)
+                {
+                    this.RaiseAndSetIfChanged(ref m_NonWorkingDaysFinish, value);
+                }
+            }
+        }
+
+        public void SetNonWorkingDayCalendarEvents(List<HolidayModel> nonWorkingDayCalendarEvents)
         {
             lock (m_Lock)
             {
-                DateTimeOffset? result = input;
-                if (result.HasValue)
+                m_CustomCalendarNonWorkingCalendarEvents.Clear();
+
+                foreach (HolidayModel holiday in nonWorkingDayCalendarEvents)
                 {
-                    if (result < projectStart)
-                    {
-                        result = projectStart.DateTime;
-                    }
-                    result = new DateTimeOffset(result.GetValueOrDefault().Date + projectStart.TimeOfDay, projectStart.Offset);
+                    m_CustomCalendarNonWorkingCalendarEvents.Add(holiday);
                 }
-                return result;
+
+                ClearNonWorkingDays();
             }
+        }
+
+        public DateTimeOffset GetLocalNow()
+        {
+            return m_TimeProvider.GetLocalNow();
+        }
+
+        public DateTimeOffset GetLocal(DateTime dateTime)
+        {
+            var localDateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Local);
+            TimeSpan offset = m_TimeProvider.LocalTimeZone.GetUtcOffset(localDateTime);
+            return new(localDateTime, offset);
         }
 
         public (int?, DateTimeOffset?) CalculateTimeAndDateTime(

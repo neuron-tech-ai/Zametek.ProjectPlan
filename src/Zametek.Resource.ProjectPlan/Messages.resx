@@ -120,8 +120,14 @@
   <data name="Message_ArrowGraphDataContainMultipleEndNodes" xml:space="preserve">
     <value>Arrow Graph Data contain more than one End node</value>
   </data>
+  <data name="Message_VertexGraphDataContainsNoEndNodes" xml:space="preserve">
+    <value>Vertex Graph Data contains no End nodes</value>
+  </data>
   <data name="Message_ArrowGraphDataContainMultipleStartNodes" xml:space="preserve">
     <value>Arrow Graph Data contain more than one Start node</value>
+  </data>
+  <data name="Message_VertexGraphDataContainsNoStartNodes" xml:space="preserve">
+    <value>Vertex Graph Data contains no Start nodes</value>
   </data>
   <data name="Message_CannotBuildArrowGraph" xml:space="preserve">
     <value>Cannot build arrow graph</value>
@@ -144,14 +150,23 @@
   <data name="Message_FibonacciWeightMustBeEqualOrGreaterThanZero" xml:space="preserve">
     <value>Fibonacci Weight must be equal or greater than 0</value>
   </data>
-  <data name="Message_MismatchedEdgeIdsForHeadNodes" xml:space="preserve">
+  <data name="Message_MismatchedEdgeIdsForHeadNodesInArrowGraph" xml:space="preserve">
     <value>List of Edge IDs and Edges referenced by head Nodes do not match when building Arrow Graph</value>
   </data>
-  <data name="Message_MismatchedEdgeIdsForTailNodes" xml:space="preserve">
+  <data name="Message_MismatchedEdgeIdsForHeadNodesInVertexGraph" xml:space="preserve">
+    <value>List of Edge IDs and Edges referenced by head Nodes do not match when building Vertex Graph</value>
+  </data>
+  <data name="Message_MismatchedEdgeIdsForTailNodesInArrowGraph" xml:space="preserve">
     <value>List of Edge IDs and Edges referenced by tail Nodes do not match when building Arrow Graph</value>
   </data>
-  <data name="Message_MismatchedNodeIdsAssociatedWithEdges" xml:space="preserve">
+  <data name="Message_MismatchedEdgeIdsForTailNodesInVertexGraph" xml:space="preserve">
+    <value>List of Edge IDs and Edges referenced by tail Nodes do not match when building Vertex Graph</value>
+  </data>
+  <data name="Message_MismatchedNodeIdsAssociatedWithEdgesInArrowGraph" xml:space="preserve">
     <value>List of Node IDs and Nodes associated with Edges do not match when building Arrow Graph</value>
+  </data>
+  <data name="Message_MismatchedNodeIdsAssociatedWithEdgesInVertexGraph" xml:space="preserve">
+    <value>List of Node IDs and Nodes associated with Edges do not match when building Vertex Graph</value>
   </data>
   <data name="Message_NewTrackersMustBeEqualOrGreaterThanZero" xml:space="preserve">
     <value>New Trackers must be equal or greater than 0</value>
@@ -162,8 +177,8 @@
   <data name="Message_TrackerCountMustBeEqualOrGreaterThanZero" xml:space="preserve">
     <value>Tracker Count must be equal or greater than 0</value>
   </data>
-  <data name="Message_UnableToDetermineUserSettingsPath" xml:space="preserve">
-    <value>Unable to determine file path for User Settings</value>
+  <data name="Message_UnableToDetermineProductSettingsFolderPath" xml:space="preserve">
+    <value>Unable to determine folder path for product settings</value>
   </data>
   <data name="Message_UnableToExportFile" xml:space="preserve">
     <value>Unable to export file:</value>
@@ -186,14 +201,20 @@
   <data name="Message_FixedCostMustBeZeroOrGreater" xml:space="preserve">
     <value>Fixed Cost must be equal to or greater than 0</value>
   </data>
-  <data name="Message_UnknownDateTimeCalculatorMode" xml:space="preserve">
-    <value>Unknown DateTimeCalculatorMode value:</value>
+  <data name="Message_UnknownNonWorkingDayMode" xml:space="preserve">
+    <value>Unknown NonWorkingDayMode value:</value>
   </data>
   <data name="Message_UnknownEdgeDashStyleValue" xml:space="preserve">
     <value>Unknown EdgeDashStyle value</value>
   </data>
-  <data name="Message_UnsavedChanges" xml:space="preserve">
+  <data name="Message_UnknownNodeBorderDashStyleValue" xml:space="preserve">
+    <value>Unknown NodeBorderDashStyle value</value>
+  </data>
+  <data name="Message_ProjectUnsavedChanges" xml:space="preserve">
     <value>Project has unsaved changes. Do you wish to continue?</value>
+  </data>
+  <data name="Message_ScenarioUnsavedChanges" xml:space="preserve">
+    <value>Scenario has unsaved changes. Do you wish to continue?</value>
   </data>
   <data name="Message_NumberOfTrackersAcrossAllActivitiesNotIdentical" xml:space="preserve">
     <value>The number of Trackers across all Activities is not identical</value>
@@ -226,12 +247,117 @@
     <value>Unknown DisplayStyle value:</value>
   </data>
   <data name="Message_UnableToDetermineUserSettingsDirectory" xml:space="preserve">
-    <value>Unable to determine file directory for User Settings</value>
+    <value>Unable to determine directory for User Settings</value>
+  </data>
+  <data name="Message_UnableToDetermineDockLayoutDirectory" xml:space="preserve">
+    <value>Unable to determine directory for Dock Layout</value>
   </data>
   <data name="Message_UnitBillingMustBeZeroOrGreater" xml:space="preserve">
     <value>Unit Billing must be equal to or greater than 0 </value>
   </data>
   <data name="Message_FixedBillingMustBeZeroOrGreater" xml:space="preserve">
     <value>Fixed Billing must be equal to or greater than 0 </value>
+  </data>
+  <data name="Message_EditResources" xml:space="preserve">
+    <value>Select the properties to edit</value>
+  </data>
+  <data name="Message_EditWorkStreams" xml:space="preserve">
+    <value>Select the properties to edit</value>
+  </data>
+  <data name="Message_EditActivities" xml:space="preserve">
+    <value>Select the properties to edit</value>
+  </data>
+  <data name="Message_ConvertedFromPreviousVersion" xml:space="preserve">
+    <value>Converted from previous version</value>
+  </data>
+  <data name="Message_AddTag" xml:space="preserve">
+    <value>Add tag to node</value>
+  </data>
+  <data name="Message_DeleteTag" xml:space="preserve">
+    <value>Delete tag from node</value>
+  </data>
+  <data name="Message_CannotSetProjectScenarioOnFolderNode" xml:space="preserve">
+    <value>Cannot set a project scenario on a folder node:</value>
+  </data>
+  <data name="Message_CannotGetProjectScenarioFileFromFolderNode" xml:space="preserve">
+    <value>Cannot get a project scenario file from a folder node:</value>
+  </data>
+  <data name="Message_CannotTrackProjectScenarioFileFromFolderNode" xml:space="preserve">
+    <value>Cannot track a project scenario file from a folder node:</value>
+  </data>
+  <data name="Message_CannotGetProjectScenarioFileWhenProjectScenarioIsNull" xml:space="preserve">
+    <value>Cannot get a project scenario file when project scenario is null:</value>
+  </data>
+  <data name="Message_DoYouWishToDeleteTheseItems" xml:space="preserve">
+    <value>Do you wish to delete these items?</value>
+  </data>
+  <data name="Message_NameAlreadyExists" xml:space="preserve">
+    <value>Name already exists</value>
+  </data>
+  <data name="Message_NameCannotBeEmpty" xml:space="preserve">
+    <value>Name cannot be empty</value>
+  </data>
+  <data name="Message_TagAlreadyExists" xml:space="preserve">
+    <value>Tag already exists</value>
+  </data>
+  <data name="Message_TagCannotBeEmpty" xml:space="preserve">
+    <value>Tag cannot be empty</value>
+  </data>
+  <data name="Message_UnknownSortMode" xml:space="preserve">
+    <value>Unknown SortDirection value:</value>
+  </data>
+  <data name="Message_UnknownTrackedMetric" xml:space="preserve">
+    <value>Unknown TrackedMetric value:</value>
+  </data>
+  <data name="Message_UnknownSortDirection" xml:space="preserve">
+    <value>Unknown SortMode value:</value>
+  </data>
+  <data name="Message_UnknownCurveFittingType" xml:space="preserve">
+    <value>Unknown CurveFittingType value:</value>
+  </data>
+  <data name="Message_DefaultWeekendsNotes" xml:space="preserve">
+    <value>Weekends off</value>
+  </data>
+  <data name="Message_DefaultChristmasDayNotes" xml:space="preserve">
+    <value>Christmas holiday</value>
+  </data>
+  <data name="Message_DefaultNewYearsDayNotes" xml:space="preserve">
+    <value>New Year's holiday</value>
+  </data>
+  <data name="Message_DefaultWeekendsName" xml:space="preserve">
+    <value>Weekends</value>
+  </data>
+  <data name="Message_DefaultChristmasDayName" xml:space="preserve">
+    <value>Christmas Day</value>
+  </data>
+  <data name="Message_DefaultNewYearsDayName" xml:space="preserve">
+    <value>New Year's Day</value>
+  </data>
+  <data name="Message_InvalidRRulePart" xml:space="preserve">
+    <value>Invalid RRULE part: '{0}'</value>
+  </data>
+  <data name="Message_DuplicateRRulePart" xml:space="preserve">
+    <value>Duplicate RRULE part: '{0}'</value>
+  </data>
+  <data name="Message_RRuleMustContain" xml:space="preserve">
+    <value>RRule must contain '{0}'</value>
+  </data>
+  <data name="Message_InvalidFrequencyValue" xml:space="preserve">
+    <value>Invalid Frequency value: '{0}'</value>
+  </data>
+  <data name="Message_InvalidInputValue" xml:space="preserve">
+    <value>Invalid {0} value: '{1}'</value>
+  </data>
+  <data name="Message_MustBeGreaterThanZero" xml:space="preserve">
+    <value>{0} must be greater than zero ({1})</value>
+  </data>
+  <data name="Message_CannotBothBeSet" xml:space="preserve">
+    <value>{0} and {1} cannot both be set</value>
+  </data>
+  <data name="Message_MustBeMinusOneOrGreaterThanZero" xml:space="preserve">
+    <value>Value must be either -1 or greater than zero</value>
+  </data>
+  <data name="Message_EditCustomCalendar" xml:space="preserve">
+    <value>Configure custom calendar</value>
   </data>
 </root>

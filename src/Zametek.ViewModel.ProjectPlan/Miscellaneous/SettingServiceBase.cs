@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ReactiveUI;
 using Zametek.Common.ProjectPlan;
 using Zametek.Contract.ProjectPlan;
 using Zametek.Data.ProjectPlan;
-using Zametek.Maths.Graphs;
 using Zametek.Utility;
 
 namespace Zametek.ViewModel.ProjectPlan
@@ -14,7 +12,7 @@ namespace Zametek.ViewModel.ProjectPlan
     {
         #region Fields
 
-        private readonly object m_Lock;
+        private readonly Lock m_Lock;
         protected AppSettingsModel m_AppSettingsModel;
 
         private static readonly double s_GoldenRatio = (1.0 + Math.Sqrt(5.0)) / 2.0;
@@ -27,16 +25,27 @@ namespace Zametek.ViewModel.ProjectPlan
         {
             m_Lock = new();
             m_ProjectTitle = string.Empty;
+            m_ProjectId = Guid.NewGuid();
+            m_ScenarioTitle = string.Empty;
+            m_ScenarioId = Guid.NewGuid();
             m_AppSettingsModel = new()
             {
                 Version = Versions.AppSettingsLatest,
             };
             SettingsFilename = settingsFilename;
+            DockLayoutFilename = string.Empty;
+            DataGridLayoutFilename = string.Empty;
 
             if (File.Exists(SettingsFilename))
             {
                 using StreamReader reader = File.OpenText(SettingsFilename);
                 string content = reader.ReadToEnd();
+
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return;
+                }
+
                 JObject json = JObject.Parse(content);
                 string version =
                     json?.GetValue(nameof(AppSettingsModel.Version), StringComparison.OrdinalIgnoreCase)?.ToString()
@@ -64,6 +73,12 @@ namespace Zametek.ViewModel.ProjectPlan
                         func = jString => Converter.Upgrade(
                             JsonConvert.DeserializeObject<Data.ProjectPlan.v0_4_4.AppSettingsModel>(jString)
                             ?? new Data.ProjectPlan.v0_4_4.AppSettingsModel());
+                    })
+                    .Case(Versions.v0_6_0, x =>
+                    {
+                        func = jString => Converter.Upgrade(
+                            JsonConvert.DeserializeObject<Data.ProjectPlan.v0_6_0.AppSettingsModel>(jString)
+                            ?? new Data.ProjectPlan.v0_6_0.AppSettingsModel());
                     });
 
                 m_AppSettingsModel = func(jsonString);
@@ -76,21 +91,73 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public string SettingsFilename { get; init; }
 
+        public string DockLayoutFilename { get; init; }
+
+        public string DataGridLayoutFilename { get; init; }
+
         private string m_ProjectTitle;
         public string ProjectTitle
         {
             get => string.IsNullOrWhiteSpace(m_ProjectTitle) ? string.Empty : m_ProjectTitle;
             protected set
             {
-                lock (m_Lock) this.RaiseAndSetIfChanged(ref m_ProjectTitle, value);
+                lock (m_Lock)
+                {
+                    m_ProjectTitle = value;
+                }
             }
         }
+
+        private Guid m_ProjectId;
+        public Guid ProjectId
+        {
+            get => m_ProjectId;
+            protected set
+            {
+                lock (m_Lock)
+                {
+                    m_ProjectId = value == Guid.Empty ? Guid.NewGuid() : value;
+                }
+            }
+        }
+
+        private string m_ScenarioTitle;
+        public string ScenarioTitle
+        {
+            get => string.IsNullOrWhiteSpace(m_ScenarioTitle) ? string.Empty : m_ScenarioTitle;
+            protected set
+            {
+                lock (m_Lock)
+                {
+                    m_ScenarioTitle = value;
+                }
+            }
+        }
+
+        private Guid m_ScenarioId;
+        public Guid ScenarioId
+        {
+            get => m_ScenarioId;
+            protected set
+            {
+                lock (m_Lock)
+                {
+                    m_ScenarioId = value == Guid.Empty ? Guid.NewGuid() : value;
+                }
+            }
+        }
+
+        public abstract string DockLayout { get; set; }
+
+        public abstract IList<DataGridModel> GetDataGridLayout();
+
+        public abstract void SetDataGridLayout(IList<DataGridModel> models);
 
         public abstract bool DefaultShowDates { get; set; }
 
         public abstract bool DefaultUseClassicDates { get; set; }
 
-        public abstract bool DefaultUseBusinessDays { get; set; }
+        public abstract NonWorkingDayMode DefaultNonWorkingDayMode { get; set; }
 
         public abstract bool DefaultHideCost { get; set; }
 
@@ -104,54 +171,44 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public void SetProjectFilePath(
             string filename,
-            bool bindTitleToFilename)//!!)
+            bool bindTitleToFilename)
         {
             SetProjectTitle(filename);
             SetProjectDirectory(filename);
             IsTitleBoundToFilename = bindTitleToFilename;
         }
 
-        public void SetProjectTitle(string filename)//!!)
+        public void SetProjectTitle(string filename)
         {
             ProjectTitle = Path.GetFileNameWithoutExtension(filename).Trim();
         }
 
-        public void SetProjectDirectory(string filename)//!!)
+        public void SetProjectId(Guid projectId)
+        {
+            ProjectId = projectId;
+        }
+
+        public void SetProjectDirectory(string filename)
         {
             ProjectDirectory = Path.GetDirectoryName(filename) ?? string.Empty;
         }
 
-        public ArrowGraphSettingsModel DefaultArrowGraphSettings =>
+        public void SetProjectScenarioTitle(string name)
+        {
+            ScenarioTitle = name.Trim();
+        }
+
+        public void SetProjectScenarioId(Guid scenarioId)
+        {
+            ScenarioId = scenarioId;
+        }
+
+        public GraphSettingsModel DefaultGraphSettings =>
             new()
             {
-                EdgeTypeFormats = new List<EdgeTypeFormatModel>(
-                    [
-                        new()
-                        {
-                            EdgeType = EdgeType.Activity,
-                            EdgeDashStyle = EdgeDashStyle.Normal,
-                            EdgeWeightStyle = EdgeWeightStyle.Normal
-                        },
-                        new()
-                        {
-                            EdgeType = EdgeType.CriticalActivity,
-                            EdgeDashStyle = EdgeDashStyle.Normal,
-                            EdgeWeightStyle = EdgeWeightStyle.Bold
-                        },
-                        new()
-                        {
-                            EdgeType = EdgeType.Dummy,
-                            EdgeDashStyle = EdgeDashStyle.Dashed,
-                            EdgeWeightStyle = EdgeWeightStyle.Normal
-                        },
-                        new()
-                        {
-                            EdgeType = EdgeType.CriticalDummy,
-                            EdgeDashStyle = EdgeDashStyle.Dashed,
-                            EdgeWeightStyle = EdgeWeightStyle.Bold
-                        }
-                    ]),
-                ActivitySeverities = new List<ActivitySeverityModel>(
+                NodeTypeFormats = DefaultFormatCollections.NodeTypeFormats,
+                EdgeTypeFormats = DefaultFormatCollections.EdgeTypeFormats,
+                ActivitySeverities =
                     [
                         // Black.
                         new()
@@ -185,7 +242,7 @@ namespace Zametek.ViewModel.ProjectPlan
                             FibonacciWeight = Math.Pow(s_GoldenRatio, 0.0),
                             ColorFormat = ColorHelper.Green()
                         }
-                    ])
+                    ],
             };
 
         public ResourceSettingsModel DefaultResourceSettings =>
@@ -198,9 +255,48 @@ namespace Zametek.ViewModel.ProjectPlan
 
         public WorkStreamSettingsModel DefaultWorkStreamSettings => new();
 
-        public void Reset()
+        public HolidaySettingsModel DefaultHolidaySettings =>
+            new()
+            {
+                Holidays =
+                    [
+                        // Weekends.
+                        new()
+                        {
+                            Id = 1,
+                            Name = Resource.ProjectPlan.Messages.Message_DefaultWeekendsName,
+                            Notes = Resource.ProjectPlan.Messages.Message_DefaultWeekendsNotes,
+                            RecurrencePattern = "FREQ=WEEKLY;BYDAY=SA,SU",
+                        },
+                        // Christmas Day.
+                        new()
+                        {
+                            Id = 2,
+                            Name = Resource.ProjectPlan.Messages.Message_DefaultChristmasDayName,
+                            Notes = Resource.ProjectPlan.Messages.Message_DefaultChristmasDayNotes,
+                            RecurrencePattern = "FREQ=YEARLY;BYMONTH=12;BYMONTHDAY=25",
+                        },
+                        // New Year's Day.
+                        new()
+                        {
+                            Id = 3,
+                            Name = Resource.ProjectPlan.Messages.Message_DefaultNewYearsDayName,
+                            Notes = Resource.ProjectPlan.Messages.Message_DefaultNewYearsDayNotes,
+                            RecurrencePattern = "FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1",
+                        },
+                    ],
+            };
+
+        public void ResetProject()
         {
             ProjectTitle = string.Empty;
+            ProjectId = Guid.NewGuid();
+        }
+
+        public void ResetProjectScenario()
+        {
+            ScenarioTitle = string.Empty;
+            ScenarioId = Guid.NewGuid();
         }
 
         #endregion
